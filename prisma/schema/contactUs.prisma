@@ -1,0 +1,10 @@
+model ContactUs {
+  id      String @id @default(auto()) @map("_id") @db.ObjectId
+  date    DateTime
+  email   String
+  name    String
+  message String
+
+  // set the name of the collection
+  @@map("contactus")
+}
