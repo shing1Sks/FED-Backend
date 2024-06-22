@@ -3,6 +3,7 @@ const express = require("express");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const errorHandler = require('./middleware/errorHandler');
+const logRequestBody = require('./middleware/requestLog')
 
 const app = express();
 
@@ -18,14 +19,20 @@ app.use(cors({
     credentials: true
 }));
 
+
+// Log the request
+console.log("LOG mode enabled :",process.env.LOG_REQ)
+if (process.env.LOG_REQ === "true") {
+    app.use(logRequestBody);
+}
+
 // Routes
 app.use('/api', require('./routes/api'));
+
 
 // Error-handling middleware -> List it at the end
 app.use(errorHandler);
 
 app.listen(PORT, () => {
-    console.log(`Server listening to PORT -> ${PORT}`);
+    console.log(`FED-Backend listening to PORT -> ${PORT}`);
 });
-
-console.log("Hii this is the new backend");

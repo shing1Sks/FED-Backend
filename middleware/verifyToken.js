@@ -1,18 +1,16 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const jwt = require("jsonwebtoken");
+const { ApiError } = require('../utils/ApiError');
 
 const verifyToken = async (req, res, next) => {
     console.log("VerifyToken middleware is being called");
     
-    const token = req.headers.authorization;
-
-    console.log("imported secret : " + JWT_SECRET);
-    console.log("received token : " + token);
+    const token = req.cookies.token;
 
     if (!token) {
         console.log("Token not provided");
-        return res.status(401).send({ status: "ERROR", message: "Unauthorized: Token not provided" });
+        throw new ApiError(401, "Unauthorized: Token not provided");
     }
 
     try {
@@ -20,37 +18,31 @@ const verifyToken = async (req, res, next) => {
 
         console.log("Token verified");
         console.log(decoded);
-        // write the logic here to find the user and add the access level of the user
 
-        const userAccess = await prisma.User.findUnique({
-            where: { email: email },
-            select: {
-                access: true,
-            },
-        });
+        const user = await prisma.User.findUnique({
+            where: { email: decoded.email } // Assuming 'email' is stored in the token payload
+        });        
 
-
-        console.log("User Access:", userAccess);
-
-        
-
-        if (!userAccess) {
-            console.log("User or Society not found");
-            return res.status(404).send({ status: "ERROR", message: "User or Society not found" });
+        if (!user) {
+            console.log("User not found");
+            throw new ApiError(404, "User not found");
         }
 
-        decoded.access = userAccess.access;
-        req.user = decoded;
+        req.user = user;
         next();
 
     } catch (err) {
         console.log("Error during token verification:", err);
+
         if (err.name === 'TokenExpiredError') {
             console.log("Token has expired");
-            return res.status(401).send({ status: "ERROR", message: "Unauthorized: Token has expired" });
-        } else {
+            throw new ApiError(401, "Unauthorized: Token has expired");
+        } else if (err.name === 'JsonWebTokenError') {
             console.log("Invalid token");
-            return res.status(403).send({ status: "ERROR", message: "Forbidden: Invalid token" });
+            throw new ApiError(403, "Forbidden: Invalid token");
+        } else {
+            console.log("Unexpected error");
+            throw new ApiError(500, "Internal Server Error");
         }
     }
 };

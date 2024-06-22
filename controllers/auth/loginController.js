@@ -13,32 +13,50 @@ const login = expressAsyncHandler(async (req, res, next) => {
 
     try {
         const user = await prisma.User.findUnique({
-            where: { email },
-            select: { id: true, access: true, password: true }
+            where: { email }
         });
 
         if (!user) {
             return next(new ApiError(404, 'User not found'));
         }
-
+        if(process.env.DEBUG === true){
+            console.log("User details in - ./controllers/auth/loginController -> login function \n", user)
+        }
         const isPasswordValid = await bcrypt.compare(password, user.password);
 
         if (!isPasswordValid) {
             return next(new ApiError(401, 'Invalid password'));
         }
 
-        // Generate the JWT Token
-        const token = jwt.sign({ email, access: user.access, id: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+        // Generate the JWT Token with only id, email, and login time
+        const token = jwt.sign({ id: user.id, email, loginTime: new Date().toISOString() }, process.env.JWT_SECRET, { expiresIn: '3h' });
 
         // Send the token as an HTTP-only cookie
         res.cookie('token', token, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
-            maxAge: 3600000 // 1 hour in milliseconds
+            secure: true,
+            // secure: process.env.NODE_ENV === 'production',
+            // sameSite: 'strict',
+            // maxAge: 3600000 // 1 hour in milliseconds
         });
 
-        res.json({ status: "OK", message: "LOGGED IN" });
+        // Construct the response object excluding password
+        const userData = {
+            id: user.id,
+            email: user.email,
+            access: user.access,
+            name: user.name,
+            year: user.year,
+            rollNumber: user.rollNumber,
+            school: user.school,
+            college: user.college,
+            contactNo: user.contactNo,
+            whatsappNo: user.whatsappNo,
+            regForm : user.regForm,
+            member : user.member ? user.member : undefined
+        };
+
+        res.json({ status: "OK", message: "LOGGED IN", user: userData });
     } catch (error) {
         next(error);
     }

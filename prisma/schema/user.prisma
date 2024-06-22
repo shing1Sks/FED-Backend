@@ -16,7 +16,7 @@ model User {
   contactNo     String 
   whatsappNo    String 
   member        Json?
-  forms         Form[]
+  forms         Json?
   // Name of the collection -> userdb
   @@map("userdb")
 }
