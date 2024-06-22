@@ -7,7 +7,8 @@ model form {
   amount      String
 
   isTeam      Boolean      @default(false)
-  teamsize    Int          @default(1)
+  minteamsize    Int          @default(1)
+  maxteamsize    Int          @default(1)
 
   formFields  Json
   maxReg      Int          @default(1000)
