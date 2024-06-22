@@ -6,7 +6,16 @@ const { ApiError } = require('../utils/ApiError');
 const verifyToken = async (req, res, next) => {
     console.log("VerifyToken middleware is being called");
     
-    const token = req.cookies.token;
+    // Extract the token from cookies or headers (assuming it's in cookies in your case)
+    let token = req.cookies.token;
+
+    // Check if token exists and starts with "Bearer "
+    if (token && token.startsWith("Bearer ")) {
+        // Remove "Bearer " prefix
+        token = token.slice(7);
+    }
+
+    console.log("Extracted Token:", token);
 
     if (!token) {
         console.log("Token not provided");
@@ -19,7 +28,7 @@ const verifyToken = async (req, res, next) => {
         console.log("Token verified");
         console.log(decoded);
 
-        const user = await prisma.User.findUnique({
+        const user = await prisma.user.findUnique({
             where: { email: decoded.email } // Assuming 'email' is stored in the token payload
         });        
 
