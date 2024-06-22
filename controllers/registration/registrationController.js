@@ -1,5 +1,7 @@
 const { addRegistration } = require('./addRegistration');
+const { downloadRegistration } = require('./downloadRegistration');
 
 module.exports = {
-    addRegistration
+    addRegistration,
+    downloadRegistration
 };
