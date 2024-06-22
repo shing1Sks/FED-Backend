@@ -1,7 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const {createUser} = require('../../controllers/userController/userController')
+const { editDetails } = require('../../controllers/userController/userController')
+
+// Add validation, token verification, and isMember
 // User Routes
-router.use('/create-user',createUser)
+router.use('/editDetails',editDetails)
 
 module.exports = router; 
