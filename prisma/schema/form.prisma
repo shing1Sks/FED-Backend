@@ -1,0 +1,24 @@
+model Form {
+  id          String       @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  description String
+  date        String
+  img         String?
+  amount      String
+
+  isTeam      Boolean      @default(false)
+  teamsize    Int          @default(1)
+
+  formFields  Json
+  maxReg      Int          @default(1000)
+
+  eventName   String
+  active      Boolean      @default(true)
+  
+  
+  upi         String?
+  mail        String?
+  userId      String       @db.ObjectId
+  user        User         @relation(fields: [userId], references: [id])
+        
+}
