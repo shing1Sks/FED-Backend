@@ -11,6 +11,8 @@ router.get('/getAllForms',formController.getAllForms)
 
 // Add middleware to verifyToken, isUser
 router.use('/register', verifyToken, registrationController.addRegistration)
+router.get('/download/:id', verifyToken, registrationController.downloadRegistration)
+
 
 // Add middleware verifyToken, isAdmin
 

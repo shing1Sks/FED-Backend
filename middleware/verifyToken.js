@@ -6,7 +6,7 @@ const { ApiError } = require('../utils/ApiError');
 const verifyToken = async (req, res, next) => {
     console.log("VerifyToken middleware is being called");
     
-    // Extract the token from cookies or headers (assuming it's in cookies in your case)
+    // Extract the token from cookies or headers
     let token = req.cookies.token;
 
     // Check if token exists and starts with "Bearer "
@@ -19,7 +19,7 @@ const verifyToken = async (req, res, next) => {
 
     if (!token) {
         console.log("Token not provided");
-        throw new ApiError(401, "Unauthorized: Token not provided");
+        return next(new ApiError(401, "Unauthorized: Token not provided"));
     }
 
     try {
@@ -29,12 +29,12 @@ const verifyToken = async (req, res, next) => {
         console.log(decoded);
 
         const user = await prisma.user.findUnique({
-            where: { email: decoded.email } // Assuming 'email' is stored in the token payload
+            where: { email: decoded.email } 
         });        
 
         if (!user) {
             console.log("User not found");
-            throw new ApiError(404, "User not found");
+            return next(new ApiError(404, "User not found"));
         }
 
         req.user = user;
@@ -45,13 +45,13 @@ const verifyToken = async (req, res, next) => {
 
         if (err.name === 'TokenExpiredError') {
             console.log("Token has expired");
-            throw new ApiError(401, "Unauthorized: Token has expired");
+            return next(new ApiError(401, "Unauthorized: Token has expired"));
         } else if (err.name === 'JsonWebTokenError') {
             console.log("Invalid token");
-            throw new ApiError(403, "Forbidden: Invalid token");
+            return next(new ApiError(403, "Forbidden: Invalid token"));
         } else {
             console.log("Unexpected error");
-            throw new ApiError(500, "Internal Server Error");
+            return next(new ApiError(500, "Internal Server Error"));
         }
     }
 };
