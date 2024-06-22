@@ -18,6 +18,6 @@ router.use('/user', require('./user/userRoutes'));
 // router.use('/admin', require('./admin/adminRoutes'));
 
 // Event routes 
-router.use('/event', require('./event/eventRoutes'));
+router.use('/form', require('./forms/formRoutes'));
 
 module.exports = router; // Ensure you are exporting the router
