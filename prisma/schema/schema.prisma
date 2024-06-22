@@ -1,0 +1,15 @@
+// generate the client 
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["prismaSchemaFolder"]
+}
+
+// connect to a data source 
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+
+// npx prisma db push
+// npx prisma generate

@@ -1,0 +1,17 @@
+# Ignore log files
+*.log
+
+# Ignore node_modules directory
+node_modules/
+
+# Ignore compiled output
+/dist/
+
+# Ignore environment-specific configuration file
+.env
+
+# Ignore editor-specific files
+.vscode/
+
+# Ignore ideation folder
+ideation/
