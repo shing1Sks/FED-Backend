@@ -10,14 +10,30 @@ model form {
   minteamsize    Int          @default(1)
   maxteamsize    Int          @default(1)
 
-  formFields  Json
+  // formFields  Json
   maxReg      Int          @default(1000)
 
   eventName   String
   active      Boolean      @default(true)
   
   upi         String?
-  mail        String?
+  mail        Boolean
+
+  extraData   Json?
 
   userForms   formRegistration[]
+  sections    section[] //-> added later
+}
+
+
+model section {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  formId        String   @db.ObjectId
+  sectionTitle  String?
+  sectionDesc   String?
+  sectionNo     Int   
+  fields        Json
+  conditions    Json
+  form          form     @relation(fields: [formId], references: [id])
+  extraData     Json?
 }

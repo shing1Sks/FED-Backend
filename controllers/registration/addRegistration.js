@@ -16,11 +16,11 @@ const addRegistration = async (req, res, next) => {
         });
 
         if (!formExists) {
-            return next(new ApiError(404, `Form not found`));
+            return next(new ApiError(404, 'Form not found'));
         }
 
         // Print the form data
-        console.log("form data on page -> ./controllers/registration/addRegistration \n", formExists);
+        console.log("formExists on page -> ./controllers/registration/addRegistration \n", formExists);
 
         // Check if formData is an array before logging its length
         if (!Array.isArray(formData)) {
@@ -28,18 +28,31 @@ const addRegistration = async (req, res, next) => {
             return next(new ApiError(400, 'Invalid data format: formData should be an array'));
         }
 
-        // Example condition based on formExists.teamsize
+        // // Validate that each formData object contains keys matching the formFields
+        // const requiredFields = formExists.formFields
+        //     .filter(field => field.isRequired)
+        //     .map(field => field.fieldName);
 
-        console.log("min team size ",formExists.minteamsize);
-        console.log('maxSize',formExists.maxteamsize)
-        console.log(formData.lengthrs);
-        if (formExists.teamsize && formData.length > formExists.maxteamsize && formData.length < formExists.minteamsize) {
-            return next(new ApiError(400, `Team size error. Minimun Size : ${formExists.minteamsize}, Maximux Size : ${formExists.maxteamsize}.`));
-        }
+        // console.log(requiredFields);
+        
+        // for (const data of formData) {
+        //     for (const field of requiredFields) {
+        //         if (!(field in data)) {
+        //             return next(new ApiError(400, `Missing required field in formData: ${field}`));
+        //         }
+        //     }   
+        // }
+
+        // Example condition based on formExists.teamsize
+        // console.log("min team size ", formExists.minteamsize);
+        // console.log('maxSize', formExists.maxteamsize);
+        // console.log(formData.length);
+        // if (formData.length > formExists.maxteamsize || formData.length < formExists.minteamsize) {
+        //     return next(new ApiError(400, `Team size error. Minimum Size: ${formExists.minteamsize}, Maximum Size: ${formExists.maxteamsize}.`));
+        // }
 
         // Extract emails from formData and include req.user.email
-        const regUserEmails = formData.map(data => data.email);
-        regUserEmails.push(req.user.email);
+        const regUserEmails = getUniqueEmails(formData);
         console.log(regUserEmails);
 
         // Check if user is already registered for the form
@@ -49,7 +62,7 @@ const addRegistration = async (req, res, next) => {
                     { userId: req.user.id },
                     {
                         regUserEmails: {
-                            hasSome: regUserEmails // Assuming regUserEmails is an array of strings
+                            hasSome: regUserEmails // regUserEmail -> array of String
                         }
                     }
                 ],
@@ -60,7 +73,7 @@ const addRegistration = async (req, res, next) => {
         });
 
         if (registrationExists) {
-            return next(new ApiError(400, `User is already registered in this event`));
+            return next(new ApiError(400, 'User is already registered in this event'));
         }
 
         // Create new registration entry
@@ -83,5 +96,15 @@ const addRegistration = async (req, res, next) => {
         return next(new ApiError(500, 'Error in adding registration', error));
     }
 };
+
+function getUniqueEmails(data) {
+  const emails = new Set();
+  data.forEach(section => {
+    if (section.email) {
+      emails.add(section.email);
+    }
+  });
+  return Array.from(emails);
+}
 
 module.exports = { addRegistration };

@@ -1,8 +1,9 @@
-const { ApiError } = require('../utils/ApiError');
+const { ApiError } = require('../../utils/ApiError');
+const {ADMIN} = require('../../enum/access')
 
 const isAdmin = async (req, res, next) => {
     try {
-        if (!(req.user.access === 0)) {
+        if (!(req.user.access === ADMIN)) {
             throw new ApiError(403, 'Unauthorized', [], null);
         }
         next();
