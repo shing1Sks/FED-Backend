@@ -25,7 +25,7 @@ const addForm = async (req, res, next) => {
 
         // Create new form using Prisma
         const newForm = await prisma.form.create({
-            data: req.body, // Use req.body directly
+            data: req.body, 
         });
 
         res.status(201).json({

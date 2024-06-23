@@ -30,34 +30,39 @@ const register = expressAsyncHandler(async (req, res, next) => {
         const hashedPassword = await bcrypt.hash(password, 10);
 
         // Create the new user
+        // const user = await prisma.user.create({
+        //     data: {
+        //         email,
+        //         password: hashedPassword,
+        //         name,
+        //         year,
+        //         rollNumber,
+        //         school,
+        //         college,
+        //         contactNo,
+        //         whatsappNo
+        //     }
+        // });
         const user = await prisma.user.create({
-            data: {
-                email,
-                password: hashedPassword,
-                name,
-                year,
-                rollNumber,
-                school,
-                college,
-                contactNo,
-                whatsappNo
+            data: {...req.body,password:hashedPassword,access : 2
             }
         });
-
         // Generate the JWT Token
         const token = jwt.sign({ email, id: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
         // Send the token as an HTTP-only cookie
         res.cookie('token', token, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
-            maxAge: 3600000 // 1 hour in milliseconds
+            secure: true,
+            // secure: process.env.NODE_ENV === 'production',
+            // sameSite: 'strict',
+            // maxAge: 3600000 // 1 hour in milliseconds
         });
 
         res.status(201).json({ message: 'User created successfully' });
     } catch (error) {
-        next(error);
+        console.error('Error in registering user:', error);
+        next(new ApiError(500, 'Error in registering user', error)); // Send error with ApiError
     }
 });
 
