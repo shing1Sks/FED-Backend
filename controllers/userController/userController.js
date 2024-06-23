@@ -1,13 +1,14 @@
-const asyncHandler = require('express-async-handler');
-const { PrismaClient } = require('@prisma/client');
-const express = require('express');
-const expressAsyncHandler = require('express-async-handler');
+// controllers/form/formController.js
+const { addMember } = require('./member/addMember');
+const { deleteMember } = require('./member/deleteMember');
+const { updateUser }= require('./member/editProfile');
+const { fetchTeam } = require('./user/getTeam');
+const { fetchUser } = require('./getUser');
 
-const prisma = new PrismaClient();
-
-
-const editDetails = expressAsyncHandler ( async (req, res, next) => {
-
-})
-
-module.exports = { editDetails };
+module.exports = {
+    updateUser,
+    addMember,
+    fetchUser,
+    fetchTeam,
+    deleteMember
+};
