@@ -4,6 +4,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const expressAsyncHandler = require('express-async-handler');
 const { ApiError } = require('../../utils/ApiError');
+const { USER } = require('../../enum/access');
 
 //@description     Register a User
 //@route           POST /api/auth/register
@@ -29,6 +30,7 @@ const register = expressAsyncHandler(async (req, res, next) => {
         // Hash the password
         const hashedPassword = await bcrypt.hash(password, 10);
 
+
         // Create the new user
         // const user = await prisma.user.create({
         //     data: {
@@ -44,7 +46,10 @@ const register = expressAsyncHandler(async (req, res, next) => {
         //     }
         // });
         const user = await prisma.user.create({
-            data: {...req.body,password:hashedPassword,access : 2
+            data: {
+                ...req.body,
+                password:hashedPassword,
+                access : USER
             }
         });
         // Generate the JWT Token

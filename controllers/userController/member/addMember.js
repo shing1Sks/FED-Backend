@@ -24,7 +24,7 @@ const addMember = expressAsyncHandler(async (req, res, next) => {
             where: { email: email },
             data: {
                 ...rest,
-                access : MEMBER
+                access : req.boby.acess
             },
         });
 
@@ -40,7 +40,6 @@ const addMember = expressAsyncHandler(async (req, res, next) => {
         if (error.code === 'P2002') {
             return next(new ApiError(400, 'Invalid request format', error));
         }
-
         next(new ApiError(500, 'Error updating user', error)); // Send error with ApiError
     }
 });

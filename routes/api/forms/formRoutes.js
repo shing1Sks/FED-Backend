@@ -1,9 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const formController = require('../../controllers/forms/formController')
-const registrationController = require('../../controllers/registration/registrationController');
-const {verifyToken} = require('../../middleware/verifyToken');
-const { isAdmin, isMemberOrAdmin, isUserOrAdmin } = require('../../middleware/access/userAccess');
+const formController = require('../../../controllers/forms/formController')
+const registrationController = require('../../../controllers/registration/registrationController');
+const {verifyToken} = require('../../../middleware/verifyToken');
+const { isAdmin, isMemberOrAdmin, isUserOrAdmin } = require('../../../middleware/access/userAccess');
 
 // Add validations
 // Define your form routes here
