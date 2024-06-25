@@ -12,7 +12,7 @@ const { forgetPassword } = require('../../../controllers/auth/forgetPassword');
 router.get('/team',fetchTeam)
 
 // --> To be implemented
-router.post('forgetPassword', isUser, forgetPassword)
+router.post('/forgetPassword', forgetPassword)
 
 router.use(verifyToken)
 router.put('/editDetails', isMemberOrAdmin, updateUser)
