@@ -16,6 +16,14 @@ const login = expressAsyncHandler(async (req, res, next) => {
             where: { email }
         });
 
+        // //user -> 
+        // name 
+        // email 
+        // acess = number format 
+        
+        // user.access == 0 = z'adin 
+        // user.acess == 
+
         if (!user) {
             return next(new ApiError(404, 'User not found'));
         }

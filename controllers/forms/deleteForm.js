@@ -14,6 +14,12 @@ const deleteForm = async (req, res, next) => {
             where: { id: formId },
         });
 
+        if(req.body.deleteRegistations){
+            await prisma.formRegistration.delete({
+                where : { formId : formId}
+            })
+        }
+
         res.status(200).json({
             success: true,
             message: 'Form deleted successfully',
