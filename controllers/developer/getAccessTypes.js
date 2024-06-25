@@ -17,3 +17,4 @@ const getAccessTypes = expressAsyncHandler(async (req, res, next) => {
 });
 
 module.exports = { getAccessTypes };
+// ADMIN
