@@ -3,7 +3,8 @@ const express = require("express");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const errorHandler = require('./middleware/errorHandler');
-const logRequestBody = require('./middleware/requestLog')
+const logRequestBody = require('./middleware/requestLog');
+const { sendMail } = require('./utils/nodeMailer');
 
 const app = express();
 
@@ -32,6 +33,12 @@ app.use('/api', require('./routes/api/index'));
 
 // Error-handling middleware -> List it at the end
 app.use(errorHandler);
+
+app.post('/mail', (req, res)=>{
+    const {email, subject, content} = req.body;
+    sendMail(email, subject, content);
+    res.json("Email sent successfully!")
+})
 
 app.listen(PORT, () => {
     console.log(`FED-Backend listening to PORT -> ${PORT}`);
