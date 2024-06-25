@@ -6,6 +6,7 @@ const { isMemberOrAdmin, isAdmin, isUser } = require('../../../middleware/access
 const upload = require('../../../middleware/multer');
 const { uploadImage } = require('../../../controllers/image/uploadImage');
 const { forgetPassword } = require('../../../controllers/auth/forgetPassword');
+const { changePassword } = require('../../../controllers/auth/changePassword');
 
 // Add validation, token verification, and isMemberOrAdmin
 // User Routes
@@ -13,6 +14,7 @@ router.get('/team',fetchTeam)
 
 // --> To be implemented
 router.post('/forgetPassword', forgetPassword)
+router.post('/changePassword', changePassword)
 
 router.use(verifyToken)
 router.put('/editDetails', isMemberOrAdmin, updateUser)
