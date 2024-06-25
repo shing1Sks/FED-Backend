@@ -1,16 +1,18 @@
 model user {
   id            String   @id @default(auto()) @map("_id") @db.ObjectId
-  email         String   @unique
+  email         String   @unique //not null
   name          String
   access        Int      @default(2)
   year          String
+  img           String?  @default("noimage")
+  blurhash      String?
   password      String
   rollNumber    String
   school        String
   college       String
   contactNo     String 
-  whatsappNo    String 
-  member        Json?
+  whatsappNo    String
+  extra         Json?
   forms         Json?
   userForms     formRegistration[]
 

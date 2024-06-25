@@ -27,7 +27,7 @@ if (process.env.LOG_REQ === "true") {
 }
 
 // Routes
-app.use('/api', require('./routes/api'));
+app.use('/api', require('./routes/api/index'));
 
 
 // Error-handling middleware -> List it at the end
@@ -36,3 +36,6 @@ app.use(errorHandler);
 app.listen(PORT, () => {
     console.log(`FED-Backend listening to PORT -> ${PORT}`);
 });
+
+
+// ...../api/user/update

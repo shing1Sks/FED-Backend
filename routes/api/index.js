@@ -9,8 +9,6 @@ router.get('/isWorking', (req, res) => {
 // Authentication Routes 
 router.use('/auth', require('./auth/authRoutes'))
 
-
-
 // User Routes
 router.use('/user', require('./user/userRoutes'));
 
