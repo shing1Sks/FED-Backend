@@ -35,7 +35,9 @@ app.use('/api', require('./routes/api/index'));
 app.use(errorHandler);
 
 app.post('/mail', (req, res)=>{
-    const {email, subject, content} = req.body;
+    const otp = 1234;
+    const content = `<p>OTP is ${otp}</p>`;
+    const {email, subject} = req.body;
     sendMail(email, subject, content);
     res.json("Email sent successfully!")
 })
