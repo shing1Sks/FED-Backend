@@ -1,7 +1,7 @@
 // controllers/form/deleteForm.js
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
-const { ApiError } = require('../../utils/ApiError');
+const { ApiError } = require('../../utils/error/ApiError');
 
 //@description     Delete Form
 //@route           delete /api/form/deleteForm/:id

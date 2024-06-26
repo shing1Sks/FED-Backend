@@ -5,7 +5,7 @@
 // whenever a new user is created 
 // registration successfull
 
-const mailTransporter = require('../config/nodeMailer');
+const mailTransporter = require('../../config/nodeMailer');
 
 function sendMail(to, subject, htmlContent) {
     let mailDetails = {

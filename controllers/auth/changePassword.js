@@ -1,58 +1,45 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
 const expressAsyncHandler = require('express-async-handler');
-const { ApiError } = require('../../utils/ApiError');
+const { ApiError } = require('../../utils/error/ApiError');
 
-
-//@description     Changing Password
-//@route           POST /api/user/changePassword
-//@access          Public
-
-
-
-
+//@description     Changing Password
+//@route           POST /api/user/changePassword
+//@access          Public
 const changePassword = expressAsyncHandler(async (req, res, next) => {
-
-    const {newPassword, confirmNewPassword, otp,email} = req.body;
+    try {
+        const { newPassword, confirmPassword, otp, email } = req.body;
 
         const existingUser = await prisma.forgotPassword.findUnique({
-            where: { email : email }
+            where: { email: email }
         });
 
-        if(existingUser){
-            if (otp == existingUser.otp) {
-                if(newPassword===confirmNewPassword){
-                    hashedPassword = await bcrypt.hash(newPassword,10)
-                    const user = await prisma.user.update({
-                        where: { email : email },
-                        data : {password : hashedPassword}
-                    });
-                    user.password = hashedPassword;
-                    res.json({message:"Password has been changed"})
-                    console.log(user.password);
-                    await prisma.forgotPassword.delete({
-                        where: {
-                            email: email
-                        }
-                    })
-
-                }
-                else{
-                    res.send("Passwords do not match!!")
-                }
-            }  
-
-            else{
-                res.json({message: "Invalid OTP !!"})
-            }
+        if (!existingUser) {
+            return res.status(400).json({ message: "Wrong email!!" });
         }
-        else{
-            res.send("Wrong email!!")
+
+        if (otp !== existingUser.otp) {
+            return res.status(400).json({ message: "Invalid OTP !!" });
         }
-        
 
-    });
+        if (newPassword !== confirmPassword) {
+            return res.status(400).json({ message: "Passwords do not match!!" });
+        }
 
-    module.exports = { changePassword }
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        const user = await prisma.user.update({
+            where: { email: email },
+            data: { password: hashedPassword }
+        });
+        res.json({ message: "Password has been changed successfully !!" });
+        console.log("Password changed successfully")
+        await prisma.forgotPassword.delete({
+            where: { email: email }
+        });
+    } catch (error) {
+        next(new ApiError(500, "Error while changing password", error));
+    }
+});
+
+module.exports = { changePassword };

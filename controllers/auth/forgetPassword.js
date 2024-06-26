@@ -1,51 +1,78 @@
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
 const expressAsyncHandler = require("express-async-handler");
-const { ApiError } = require("../../utils/ApiError");
-const { sendMail } = require("../../utils/nodeMailer");
-const otpGenerator = require("../../utils/generateOTP");
+const { ApiError } = require("../../utils/error/ApiError");
+const { sendMail } = require("../../utils/email/nodeMailer");
+const loadTemplate = require("../../utils/email/loadTemplate");
+const generateOtp = require("../../utils/email/generateOTP");
+
+// SET OTP validity in minutes
+const validity = 0.5;
 
 //@description     Forgot Password
 //@route           POST /api/user/forgetPassword
 //@access          Public
-
-
-
 const forgetPassword = expressAsyncHandler(async (req, res, next) => {
+    const { email } = req.body;
 
-  const email = req.body.email;
+    if (!email) {
+        return next(new ApiError(400, "Email is required"));
+    }
 
-  const existingUser = await prisma.user.findUnique({
-    where: { email: email },
-  });
-
-  if (!existingUser) {
-    return next(new ApiError(400, "User does not exist"));
-  }
-
-  const generatedOTP = otpGenerator();
-
-  const user = await prisma.forgotPassword.create({
-    data: {
-      email: email,
-      otp: generatedOTP,
-    },
-  });
-  res.json({ otp: generatedOTP, message: "OTP will not work after 10mins" });
-
-  const autoDelete = async () => {
-    await prisma.forgotPassword.delete({
-      where: { email: email },
+    // If the OTP already exists
+    const existingOtp = await prisma.forgotPassword.findFirst({
+        where: { email: email }
     });
-  };
+    if (existingOtp) {
+        return next(new ApiError(400, "Retry after some time!"));
+    }
 
-  setTimeout(() => {
-    autoDelete();
-  }, 600000);
+    const existingUser = await prisma.user.findUnique({
+        where: { email: email },
+    });
 
-  const text = `<p>${generatedOTP}</p>`;
-  sendMail(email, "OTP for setting new password", text);
+    if (!existingUser) {
+        return next(new ApiError(400, "User does not exist"));
+    }
+
+    const generatedOTP = generateOtp();
+
+    try {
+        await prisma.forgotPassword.create({
+            data: {
+                email: email,
+                otp: generatedOTP,
+            },
+        });
+
+        if (process.env.DEBUG === "true") {
+            console.log(`OTP Generated for ${ email } : ${ generatedOTP }`);
+        }
+
+        // Send OTP to user
+        const templateContent = loadTemplate('forgotPassword', { otp: generatedOTP });
+        sendMail(email, "OTP for setting new password", templateContent);
+
+        res.json({ message: `OTP sent successfully to ${email}. Valid for ${validity} mins` });
+
+        // Set auto-delete for the OTP after validity ends
+        setTimeout(async () => {
+            try {
+                await prisma.forgotPassword.delete({
+                    where: { email: email },
+                });
+                if (process.env.DEBUG === "true") {
+                    console.log(`OTP Deleted for ${ email } : ${ generatedOTP }`);
+                }
+            } catch (error) {
+                console.error('Error deleting expired OTP:', error);
+            }
+        }, 60000 * validity);
+
+    } catch (error) {
+        console.error('Error in forgot password process:', error);
+        next(new ApiError(500, "Error in forgot password process"));
+    }
 });
+
 module.exports = { forgetPassword };

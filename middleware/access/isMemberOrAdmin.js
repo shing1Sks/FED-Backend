@@ -1,4 +1,4 @@
-const { ApiError } = require('../../utils/ApiError');
+const { ApiError } = require('../../utils/error/ApiError');
 const {MEMBER, ADMIN} = require('../../enum/access')
 
 const isMemberOrAdmin = async (req, res, next) => {

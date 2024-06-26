@@ -5,20 +5,16 @@ const { verifyToken } = require('../../../middleware/verifyToken');
 const { isMemberOrAdmin, isAdmin, isUser } = require('../../../middleware/access/userAccess');
 const upload = require('../../../middleware/multer');
 const { uploadImage } = require('../../../controllers/image/uploadImage');
-const { forgetPassword } = require('../../../controllers/auth/forgetPassword');
-const { changePassword } = require('../../../controllers/auth/changePassword');
 
 // Add validation, token verification, and isMemberOrAdmin
+
 // User Routes
 router.get('/team',fetchTeam)
-
-// --> To be implemented
-router.post('/forgetPassword', forgetPassword)
-router.post('/changePassword', changePassword)
+router.post('/uploadImage', upload.single('image'),uploadImage)
 
 router.use(verifyToken)
 router.put('/editDetails', isMemberOrAdmin, updateUser)
-router.post('/uploadImage', upload.single('image'),uploadImage)
+
 
 
 

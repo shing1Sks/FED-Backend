@@ -1,4 +1,4 @@
-const { ApiError } = require('../../utils/ApiError');
+const { ApiError } = require('../../utils/error/ApiError');
 const {ADMIN} = require('../../enum/access')
 
 const isAdmin = async (req, res, next) => {
