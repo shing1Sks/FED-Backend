@@ -6,14 +6,14 @@ const storage = multer.diskStorage({
         cb(null, 'uploads/');
     },
     filename: function(req, file, cb) {
-        console.log(`Uploading file: ${file.originalname}`);
-        cb(null, file.originalname);
+        const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1E9)}`;
+        cb(null, `${uniqueSuffix}${path.extname(file.originalname)}`);
     }
 });
 
 const upload = multer({
     storage: storage,
-    fileFilter: function (req, file, cb) {
+    fileFilter: function(req, file, cb) {
         // Add any file filtering logic if needed
         cb(null, true);
     },
@@ -23,3 +23,4 @@ const upload = multer({
 });
 
 module.exports = upload;
+    

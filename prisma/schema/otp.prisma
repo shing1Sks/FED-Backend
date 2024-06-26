@@ -1,0 +1,15 @@
+enum OtpPurpose {
+  FORGOT_PASSWORD
+  EMAIL_VERIFICATION
+}
+
+model otp {
+  id          String     @id @default(auto()) @map("_id") @db.ObjectId
+  email       String     @unique
+  otp         String
+  createdAt   DateTime   @default(now())
+  allowRetry  Boolean
+  for         OtpPurpose
+  
+  @@map("otp")
+}
