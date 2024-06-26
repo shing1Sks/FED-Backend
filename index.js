@@ -5,6 +5,7 @@ const cors = require("cors");
 const errorHandler = require('./middleware/errorHandler');
 const logRequestBody = require('./middleware/requestLog');
 const { sendMail } = require('./utils/email/nodeMailer');
+const deleteImage = require('./utils/image/deleteImage');
 
 const app = express();
 
@@ -40,6 +41,14 @@ app.post('/mail', (req, res)=>{
     const {email, subject} = req.body;
     sendMail(email, subject, content);
     res.json("Email sent successfully!")
+})
+
+app.delete('/deleteImage', async (req,res)=>{
+    const image_url = req.body.url;
+    console.log(image_url)
+    const result = await deleteImage(image_url)
+    console.log(result)
+    res.json(result)
 })
 
 app.listen(PORT, () => {

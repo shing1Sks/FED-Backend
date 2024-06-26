@@ -1,13 +1,12 @@
-const { PrismaClient } = require("@prisma/client");
+const { PrismaClient, OtpPurpose } = require("@prisma/client");
 const prisma = new PrismaClient();
 const expressAsyncHandler = require("express-async-handler");
 const { ApiError } = require("../../utils/error/ApiError");
-const { sendMail } = require("../../utils/email/nodeMailer");
-const loadTemplate = require("../../utils/email/loadTemplate");
-const generateOtp = require("../../utils/email/generateOTP");
+const generateOtp = require("../../utils/otp/generateOTP");
+const sendOtpToMail = require("../../utils/email/generateOtpAndSendMail");
 
 // SET OTP validity in minutes
-const validity = 0.5;
+const validity = 15;
 
 //@description     Forgot Password
 //@route           POST /api/user/forgetPassword
@@ -20,7 +19,7 @@ const forgetPassword = expressAsyncHandler(async (req, res, next) => {
     }
 
     // If the OTP already exists
-    const existingOtp = await prisma.forgotPassword.findFirst({
+    const existingOtp = await pirisma.otp.findFirst({
         where: { email: email }
     });
     if (existingOtp) {
@@ -38,27 +37,17 @@ const forgetPassword = expressAsyncHandler(async (req, res, next) => {
     const generatedOTP = generateOtp();
 
     try {
-        await prisma.forgotPassword.create({
-            data: {
-                email: email,
-                otp: generatedOTP,
-            },
-        });
-
-        if (process.env.DEBUG === "true") {
-            console.log(`OTP Generated for ${ email } : ${ generatedOTP }`);
-        }
 
         // Send OTP to user
-        const templateContent = loadTemplate('forgotPassword', { otp: generatedOTP });
-        sendMail(email, "OTP for setting new password", templateContent);
+        const placeholders = { validity : validity };
+        sendOtpToMail(email, OtpPurpose.FORGOT_PASSWORD ,'forgotPassword',"OTP for setting new password",true, templateContent);
 
         res.json({ message: `OTP sent successfully to ${email}. Valid for ${validity} mins` });
 
         // Set auto-delete for the OTP after validity ends
         setTimeout(async () => {
             try {
-                await prisma.forgotPassword.delete({
+                await pirisma.otp.delete({
                     where: { email: email },
                 });
                 if (process.env.DEBUG === "true") {

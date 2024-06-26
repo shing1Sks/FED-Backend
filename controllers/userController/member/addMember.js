@@ -1,8 +1,8 @@
-const { PrismaClient } = require('@prisma/client');
+const { PrismaClient, AccessTypes } = require('@prisma/client');
 const prisma = new PrismaClient();
 const expressAsyncHandler = require('express-async-handler');
 const { ApiError } = require('../../../utils/error/ApiError');
-const { MEMBER } = require('../../../enum/access')
+const createOrUpdateUser = require('../../../utils/user/createOrUpdateUser');
 
 //@description     Update User Details
 //@route           PUT /api/user/addMember
@@ -20,13 +20,7 @@ const addMember = expressAsyncHandler(async (req, res, next) => {
         const { email, password, ...rest } = req.body;
 
         // Update the user details
-        const updatedUser = await prisma.user.update({
-            where: { email: email },
-            data: {
-                ...rest,
-                access : req.boby.acess
-            },
-        });
+        const updatedUser = await createOrUpdateUser({email : email},rest,{})
 
         delete updatedUser.password; // Delete password from updatedUser object
 

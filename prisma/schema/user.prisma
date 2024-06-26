@@ -1,20 +1,32 @@
+enum AccessTypes {
+  ADMIN
+  USER
+  DIRECTOR
+  CREATIVE
+  TECH
+  MARKETING
+  OPERATION
+  SPONSORSHIP
+  ALUMNI
+}
+
 model user {
-  id            String   @id @default(auto()) @map("_id") @db.ObjectId
-  email         String   @unique //not null
-  name          String
-  access        Int      @default(2)
-  year          String
-  img           String?  @default("noimage")
-  blurhash      String?
-  password      String
-  rollNumber    String
-  school        String
-  college       String
-  contactNo     String 
-  whatsappNo    String
-  extra         Json?
-  forms         String[] @default([])
-  userForms     formRegistration[]
+  id         String             @id @default(auto()) @map("_id") @db.ObjectId
+  email      String             @unique //not null
+  name       String
+  access     AccessTypes        @default(USER)
+  year       String
+  img        String?            @default("noimage")
+  blurhash   String?
+  password   String
+  rollNumber String
+  school     String
+  college    String
+  contactNo  String
+  whatsappNo String
+  extra      Json?
+  forms      String[]           @default([])
+  userForms  formRegistration[]
 
   @@map("userdb")
 }

@@ -16,14 +16,6 @@ const login = expressAsyncHandler(async (req, res, next) => {
             where: { email }
         });
 
-        // //user -> 
-        // name     
-        // email 
-        // acess = number format 
-        
-        // user.access == 0 = z'adin 
-        // user.acess == 
-
         if (!user) {
             return next(new ApiError(404, 'User not found'));
         }
@@ -46,9 +38,7 @@ const login = expressAsyncHandler(async (req, res, next) => {
             // secure: process.env.NODE_ENV === 'production',
             // sameSite: 'strict',
             // maxAge: 3600000 // 1 hour in milliseconds
-        });
-
-        
+        });     
 
         res.json({ status: "OK", message: "LOGGED IN", user: userData });
     } catch (error) {
