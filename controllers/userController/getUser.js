@@ -1,7 +1,7 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const expressAsyncHandler = require('express-async-handler');
-const { ApiError } = require('../../utils/ApiError');
+const { ApiError } = require('../../utils/error/ApiError');
 
 //@description     Fetch User by Dynamic Field
 //@route           GET /api/user/query?value=<value>

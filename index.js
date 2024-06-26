@@ -4,7 +4,7 @@ const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const errorHandler = require('./middleware/errorHandler');
 const logRequestBody = require('./middleware/requestLog');
-const { sendMail } = require('./utils/nodeMailer');
+const { sendMail } = require('./utils/email/nodeMailer');
 
 const app = express();
 

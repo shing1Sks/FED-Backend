@@ -13,7 +13,7 @@ model user {
   contactNo     String 
   whatsappNo    String
   extra         Json?
-  forms         Json?
+  forms         String[] @default([])
   userForms     formRegistration[]
 
   @@map("userdb")

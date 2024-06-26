@@ -1,6 +1,6 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
-const { ApiError } = require('../../utils/ApiError');
+const { ApiError } = require('../../utils/error/ApiError');
 
 // @description     Add registration for a form
 // @route           POST /api/form/addRegistration
@@ -91,6 +91,18 @@ const addRegistration = async (req, res, next) => {
             message: 'Registration added successfully',
             data: newRegistration,
         });
+
+
+        await prisma.user.updateMany({
+            where : {
+                email : {
+                    hasSome : regUserEmails
+                }
+            },
+            data : {
+                forms : push(formId)
+            }
+        })
     } catch (error) {
         console.error('Error in adding registration:', error);
         return next(new ApiError(500, 'Error in adding registration', error));

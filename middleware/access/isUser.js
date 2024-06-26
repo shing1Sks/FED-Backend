@@ -1,4 +1,4 @@
-const { ApiError } = require('../../utils/ApiError');
+const { ApiError } = require('../../utils/error/ApiError');
 const {USER} = require('../../enum/access')
 
 const isUser = async (req, res, next) => {

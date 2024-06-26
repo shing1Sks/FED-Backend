@@ -1,17 +1,16 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
-const { USER } = require('../enum/access');
 
-const createUser = async(data, override={})=>{
+const createUser = async (data, override = {}) => {
     const email = data.email;
-    try{
+    try {
         // Check if the user already exists
         const existingUser = await prisma.user.findUnique({
             where: { email }
         });
-    
+
         if (existingUser) {
-            return next(new ApiError(400, "User already exists with this email"));
+            throw new Error("User already exists with this email");
         }
 
         const user = await prisma.user.create({
@@ -21,11 +20,10 @@ const createUser = async(data, override={})=>{
             }
         });
         return user;
-    }
-    catch (error){
+    } catch (error) {
         console.error('Error in creating user:', error);
-        next(new ApiError(500, 'Error in creating user', error)); // Send error with ApiError
+        throw error; // Propagate the error to the calling function
     }
-}
+};
 
-module.exports = createUser
+module.exports = createUser;

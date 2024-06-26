@@ -1,6 +1,6 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
-const { ApiError } = require('../../utils/ApiError');
+const { ApiError } = require('../../utils/error/ApiError');
 
 // @description     Get all sections of a form
 // @route           GET /api/form/:formId/sections

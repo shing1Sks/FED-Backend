@@ -1,7 +1,7 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const jwt = require("jsonwebtoken");
-const { ApiError } = require('../utils/ApiError');
+const { ApiError } = require('../utils/error/ApiError');
 
 const verifyToken = async (req, res, next) => {
     console.log("VerifyToken middleware is being called");
