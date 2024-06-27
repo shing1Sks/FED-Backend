@@ -5,10 +5,6 @@ const jwt = require('jsonwebtoken');
 const expressAsyncHandler = require('express-async-handler');
 const { ApiError } = require('../../utils/error/ApiError');
 const createOrUpdateUser = require('../../utils/user/createOrUpdateUser');
-const multer = require('multer');
-const upload = multer({ dest: 'uploads/' });
-const fs = require('fs');
-const path = require('path');
 const verifyOTP = require('../../utils/otp/verifyOtp');
 
 //@description     Register a User
@@ -16,8 +12,8 @@ const verifyOTP = require('../../utils/otp/verifyOtp');
 //@access          Public
 const register = expressAsyncHandler(async (req, res, next) => {
 
-    const { member, ...data } = req.body;
-    const { email, password, name, otp } = data;
+    const { member, otp, ...data } = req.body;
+    const { email, password, name } = data;
 
     // Validate request body
     if (!email || !password || !name || !otp) {
@@ -25,20 +21,39 @@ const register = expressAsyncHandler(async (req, res, next) => {
     }
 
     try {
+        // Check if the user is already registered 
+        const existingUser = await prisma.user.findUnique({
+            where : {
+                email : email
+            },
+            select : {
+                id : true
+            }
+        })
 
-        //verify OTP -> Assuming that unique user constaint is handeleted in verifyEmailController
-        const isValidOTP = await verifyOTP( email, otp, OtpPurpose.EMAIL_VERIFICATION)
+        if(existingUser){
+            console.log("User already existing with this email", existingUser);
+            return next(new ApiError(400,"User already registerd with this email!!"))
+        }
+        // Verify OTP -> Assuming that unique user constraint is handled in verifyEmailController
+        const isValidOTP = await verifyOTP(email, otp, OtpPurpose.EMAIL_VERIFICATION);
+
+        
+        // Log the otp verification if on DEBUG mode
+        if (process.env.DEBUG === "true") {
+            console.log(isValidOTP);;
+        }
 
         // Check if the OTP is valid
         if (!isValidOTP) {
-            return next(new ApiError(400, "Invalid OTP"))
+            return next(new ApiError(400, "Invalid OTP"));
         }
 
         // Hash the password
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Create the unique user
-        const newUser = await createOrUpdateUser({email : email}, data, { password: hashedPassword, access: AccessTypes.USER });
+        // Create or update the unique user
+        const newUser = await createOrUpdateUser({ email: email }, data, { password: hashedPassword, access: AccessTypes.USER });
 
         // Generate the JWT Token
         const token = jwt.sign({ id: newUser.id, email, loginTime: new Date().toISOString() }, process.env.JWT_SECRET, { expiresIn: '7h' });
@@ -51,6 +66,23 @@ const register = expressAsyncHandler(async (req, res, next) => {
 
         // Respond to the client immediately
         res.status(201).json({ message: 'User created successfully' });
+
+        // Log the registration success if in debug mode
+        if (process.env.DEBUG === "true") {
+            console.log(`${email} has registered successfully`);
+        }
+
+        // Delete the OTP in the background using a Promise
+        new Promise((resolve, reject) => {
+            prisma.otp.delete({
+                where: {id : isValidOTP.id }
+            }).then(() => {
+                resolve();
+            }).catch(error => {
+                console.error('Error deleting OTP:', error);
+                reject(error);
+            });
+        });
 
     } catch (error) {
         console.error('Error in registering user:', error);

@@ -12,18 +12,18 @@ enum AccessTypes {
 
 model user {
   id         String             @id @default(auto()) @map("_id") @db.ObjectId
-  email      String             @unique //not null
-  name       String
+  email      String             @unique 
+  name       String             @default("Generated")
   access     AccessTypes        @default(USER)
-  year       String
+  year       String             @default("Generated")
   img        String?            @default("noimage")
-  blurhash   String?
-  password   String
-  rollNumber String
-  school     String
-  college    String
-  contactNo  String
-  whatsappNo String
+  blurhash   String?            
+  password   String         
+  rollNumber String             @default("Generated")
+  school     String             @default("Generated")
+  college    String             @default("Generated")
+  contactNo  String             @default("Generated")
+  whatsappNo String             @default("Generated")
   extra      Json?
   forms      String[]           @default([])
   userForms  formRegistration[]

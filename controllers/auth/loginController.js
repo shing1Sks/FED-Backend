@@ -19,7 +19,7 @@ const login = expressAsyncHandler(async (req, res, next) => {
         if (!user) {
             return next(new ApiError(404, 'User not found'));
         }
-        if(process.env.DEBUG === true){
+        if(process.env.DEBUG === "true"){
             console.log("User details in - ./controllers/auth/loginController -> login function \n", user)
         }
         const isPasswordValid = await bcrypt.compare(password, user.password);
@@ -38,9 +38,12 @@ const login = expressAsyncHandler(async (req, res, next) => {
             // secure: process.env.NODE_ENV === 'production',
             // sameSite: 'strict',
             // maxAge: 3600000 // 1 hour in milliseconds
-        });     
+        });    
 
-        res.json({ status: "OK", message: "LOGGED IN", user: userData });
+        //delete the password field before sending the data
+        delete user.password 
+
+        res.json({ status: "OK", message: "LOGGED IN", user: user });
     } catch (error) {
         next(error);
     }

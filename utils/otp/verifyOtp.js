@@ -2,19 +2,16 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const { ApiError } = require('../error/ApiError');
 
-/**
- * Verify OTP for a given email.
- * @param {string} email The email address to verify OTP against.
- * @param {string} otp The OTP to verify.
- * @oaram { EMAIL_VERIFICATION } OtpPurpose Purose of the OTP
- * @returns {boolean} True if OTP is correct, false otherwise.
- */
-
-const verifyOTP = async (email, otp, purpose, deleteOtp = false) => {
+const verifyOtp = async (email, otp, purpose, deleteOtp = false) => {
+    console.log("Entering verify otp");
     try {
-        const hasOtp = await pirisma.otp.findUnique({
-            where: { email: email, otp : otp, purpose : purpose}
+        console.log(email,otp,purpose);
+        const hasOtp = await prisma.otp.findFirst({
+            where: { email: email, otp : otp, for : purpose}
         });
+
+        console.log(hasOtp);
+
         if (!hasOtp) {
             return false; // OTP mismatch or not found
         }
@@ -29,11 +26,11 @@ const verifyOTP = async (email, otp, purpose, deleteOtp = false) => {
                 throw new ApiError(500, "Error deleting the OTP from the database")
             }
         }
-        return true; // OTP verified successfully
+        return hasOtp; // OTP verified successfully
     } catch (error) {
         console.error('Error verifying OTP:', error);
-        throw new ApiError(500, 'Error verifying OTP', error);
+        throw new ApiError(error.statusCode, 'Error verifying OTP', error);
     }
 };
 
-module.exports = verifyOTP;
+module.exports = verifyOtp;

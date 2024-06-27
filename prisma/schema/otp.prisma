@@ -5,11 +5,13 @@ enum OtpPurpose {
 
 model otp {
   id          String     @id @default(auto()) @map("_id") @db.ObjectId
-  email       String     @unique
+  email       String     
   otp         String
   createdAt   DateTime   @default(now())
+  age         Float      
   allowRetry  Boolean
   for         OtpPurpose
-  
+
+  @@unique([email, for])
   @@map("otp")
 }
