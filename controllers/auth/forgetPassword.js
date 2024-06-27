@@ -4,13 +4,14 @@ const expressAsyncHandler = require("express-async-handler");
 const { ApiError } = require("../../utils/error/ApiError");
 const generateOtp = require("../../utils/otp/generateOTP");
 const sendOtpToMail = require("../../utils/email/generateOtpAndSendMail");
+const verifyOTP = require("../../utils/otp/verifyOtp");
 
 // SET OTP validity in minutes
 const validity = 15;
 
 //@description     Forgot Password
 //@route           POST /api/user/forgetPassword
-//@access          Public
+//@access          Existing Users
 const forgetPassword = expressAsyncHandler(async (req, res, next) => {
     const { email } = req.body;
 
@@ -18,14 +19,8 @@ const forgetPassword = expressAsyncHandler(async (req, res, next) => {
         return next(new ApiError(400, "Email is required"));
     }
 
-    // If the OTP already exists
-    const existingOtp = await pirisma.otp.findFirst({
-        where: { email: email }
-    });
-    if (existingOtp) {
-        return next(new ApiError(400, "Retry after some time!"));
-    }
 
+    // Only existing users can apply for Forget Password
     const existingUser = await prisma.user.findUnique({
         where: { email: email },
     });
@@ -34,15 +29,16 @@ const forgetPassword = expressAsyncHandler(async (req, res, next) => {
         return next(new ApiError(400, "User does not exist"));
     }
 
-    const generatedOTP = generateOtp();
-
     try {
 
         // Send OTP to user
+        const template = 'forgotPassword'
+        const subject = 'OTP for setting new password'
         const placeholders = { validity : validity };
-        sendOtpToMail(email, OtpPurpose.FORGOT_PASSWORD ,'forgotPassword',"OTP for setting new password",true, templateContent);
+        sendOtpToMail(email, OtpPurpose.FORGOT_PASSWORD ,template, subject, true, placeholders);
 
         res.json({ message: `OTP sent successfully to ${email}. Valid for ${validity} mins` });
+        console.log("Cahnge the logic in forgotPassword Controller to delete the otp");
 
         // Set auto-delete for the OTP after validity ends
         setTimeout(async () => {

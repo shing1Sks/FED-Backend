@@ -13,7 +13,7 @@ const sendOtpToMail = async (email, purpose, templateName, subject, allowRetry =
     console.log(email, purpose, templateName, subject, allowRetry, placeholders, validity)
 
     try {
-        let existingOtp = await prisma.otp.findUnique({
+        let existingOtp = await prisma.otp.findFirst({
             where: { email: email, for: purpose },
         });
 
@@ -24,16 +24,22 @@ const sendOtpToMail = async (email, purpose, templateName, subject, allowRetry =
         const generatedOTP = generateOtp();
 
         // Upsert logic based on allowRetry flag
-
         const dbEntry = await prisma.otp.upsert({
-            where: { email: email, for: purpose },
+            where: { 
+                email_for: {
+                    email : email, 
+                    for : purpose
+                },
+            },
             update: { 
                 otp: generatedOTP,
+                age : validity,
                 allowRetry 
              },
             create: {
                 email: email,
                 otp: generatedOTP,
+                age : validity,
                 for: purpose,
                 allowRetry: allowRetry
             },
@@ -61,7 +67,7 @@ const sendOtpToMail = async (email, purpose, templateName, subject, allowRetry =
         return { message: `OTP sent successfully to ${email}. Valid for ${validity} mins` };
     } catch (error) {
         console.error('Error in OTP process:', error);
-        throw new ApiError(error.statusCode, "Error in OTP process", error);
+        throw new ApiError(error.statusCode, "Error in sending OTP ", error);
     }
 };
 
