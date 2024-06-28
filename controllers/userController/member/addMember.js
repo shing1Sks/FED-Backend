@@ -9,18 +9,15 @@ const createOrUpdateUser = require('../../../utils/user/createOrUpdateUser');
 //@access          Admin
 const addMember = expressAsyncHandler(async (req, res, next) => {
     try {
-        // Fetch the current user data
-        const currentUser = { ...req.user };
 
-        if (!currentUser) {
-            return next(new ApiError(404, 'User not found'));
+        if(!req.body.email || !req.body.access){
+            return next(new ApiError(400, "Email and access is required"))
         }
 
-        // Destructure fields from req.body except email and password
         const { email, password, ...rest } = req.body;
 
         // Update the user details
-        const updatedUser = await createOrUpdateUser({email : email},rest,{})
+        const updatedUser = await createOrUpdateUser({email : email},{},rest)
 
         delete updatedUser.password; // Delete password from updatedUser object
 

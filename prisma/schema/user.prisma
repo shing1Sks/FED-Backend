@@ -1,9 +1,15 @@
 enum AccessTypes {
   ADMIN
   USER
-  DIRECTOR
+
+  DIRECTOR_CREATIVE
+  DIRECTOR_TECHNICAL
+  DIRECTOR_MARKETING
+  DIRECTOR_OPERATIONS
+  DIRECTOR_SPONSORSHIP
+
   CREATIVE
-  TECH
+  TECHNICAL
   MARKETING
   OPERATION
   SPONSORSHIP
@@ -13,17 +19,17 @@ enum AccessTypes {
 model user {
   id         String             @id @default(auto()) @map("_id") @db.ObjectId
   email      String             @unique 
-  name       String             @default("Generated")
+  name       String             
   access     AccessTypes        @default(USER)
-  year       String             @default("Generated")
-  img        String?            @default("noimage")
+  year       String             
+  img        String?            
   blurhash   String?            
   password   String         
-  rollNumber String             @default("Generated")
-  school     String             @default("Generated")
-  college    String             @default("Generated")
-  contactNo  String             @default("Generated")
-  whatsappNo String             @default("Generated")
+  rollNumber String             
+  school     String             
+  college    String             
+  contactNo  String             
+  whatsappNo String             
   extra      Json?
   forms      String[]           @default([])
   userForms  formRegistration[]

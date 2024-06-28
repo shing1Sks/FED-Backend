@@ -1,12 +1,12 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const expressAsyncHandler = require('express-async-handler');
-const { ApiError } = require('../../utils/error/ApiError');
+const { ApiError } = require('../../../utils/error/ApiError');
 
 //@description     Fetch User by Dynamic Field
 //@route           GET /api/user/query?value=<value>
 //@access          Admin
-const fetchUser = expressAsyncHandler(async (req, res, next) => {
+const deleteUser = expressAsyncHandler(async (req, res, next) => {
     try {
         const { value } = req.query;
 
@@ -15,11 +15,10 @@ const fetchUser = expressAsyncHandler(async (req, res, next) => {
         }
 
         // Fetch the user based on possible fields using OR condition
-        const user = await prisma.user.findFirst({
+        const user = await prisma.user.delete({
             where: {
                 OR: [
                     { email: value },
-                    { name: value },
                     { rollNumber: value},
                     { contactNo: value },
                     { whatsappNo: value }
@@ -34,11 +33,11 @@ const fetchUser = expressAsyncHandler(async (req, res, next) => {
         // Remove sensitive data like password before sending response
         delete user.password;
 
-        res.status(200).json({ success: true, data: user });
+        res.status(200).json({ success: true, message:"User Deleted Successfully" , data: user });
     } catch (error) {
         console.error('Error fetching user:', error);
         next(new ApiError(500, 'Error fetching user', error));
     }
 });
 
-module.exports = { fetchUser };
+module.exports = { deleteUser };
