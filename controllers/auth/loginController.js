@@ -9,27 +9,27 @@ const { ApiError } = require('../../utils/error/ApiError');
 //@route           POST /api/auth/login
 //@access          Registered User
 const login = expressAsyncHandler(async (req, res, next) => {
-    const { email, password } = req.body;
+    // const { email, password } = req.body;
 
     try {
-        const user = await prisma.user.findUnique({
-            where: { email }
-        });
+        // const user = await prisma.user.findUnique({
+        //     where: { email }
+        // });
 
-        if (!user) {
-            return next(new ApiError(404, 'User not found'));
-        }
-        if(process.env.DEBUG === "true"){
-            console.log("User details in - ./controllers/auth/loginController -> login function \n", user)
-        }
-        const isPasswordValid = await bcrypt.compare(password, user.password);
+        // if (!user) {
+        //     return next(new ApiError(404, 'User not found'));
+        // }
+        // if(process.env.DEBUG === "true"){
+        //     console.log("User details in - ./controllers/auth/loginController -> login function \n", user)
+        // }
+        const isPasswordValid = await bcrypt.compare(req.body.password, req.user.password);
 
         if (!isPasswordValid) {
             return next(new ApiError(401, 'Invalid password'));
         }
 
         // Generate the JWT Token with only id, email, and login time
-        const token = jwt.sign({ id: user.id, email, loginTime: new Date().toISOString() }, process.env.JWT_SECRET, { expiresIn: '7h' });
+        const token = jwt.sign({ id: req.user.id, email: req.user.email, loginTime: new Date().toISOString() }, process.env.JWT_SECRET, { expiresIn: '7h' });
 
         // Send the token as an HTTP-only cookie
         res.cookie('token', token, {
@@ -41,12 +41,13 @@ const login = expressAsyncHandler(async (req, res, next) => {
         });    
 
         //delete the password field before sending the data
-        delete user.password 
+        delete req.user.password 
 
-        res.json({ status: "OK", message: "LOGGED IN", user: user });
+        res.status(200).json({ message: "LOGGED IN", user: req.user });
+        console.log(`Successfully LOGGEDIN !! -> ${req.user.email}`);
     } catch (error) {
         next(error);
     }
-});
+}); // 300 -> redirection
 
 module.exports = { login };

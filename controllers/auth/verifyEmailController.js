@@ -7,7 +7,7 @@ const { login } = require("./loginController");
 const { promises } = require("nodemailer/lib/xoauth2");
 
 // SET OTP validity in minutes
-const validity = 10;
+const validity = 15;
 
 //@description     Forgot Password
 //@route           POST /api/user/verifyEmail
@@ -17,8 +17,8 @@ const verifyEmail = expressAsyncHandler(async (req, res, next) => {
 
     try {
         // Validate email presence
-        if (!email) {
-            next(new ApiError(400, "Email is required"));
+        if (!req.body.email) {
+            return next(new ApiError(400, "Email is required"));
         }
 
         // Check if the user already exists
@@ -34,14 +34,16 @@ const verifyEmail = expressAsyncHandler(async (req, res, next) => {
         }
 
         // Send OTP for email verification
-        const message = await sendOtpToMail(email, OtpPurpose.EMAIL_VERIFICATION, 'registerUserOTP', 'OTP for registering on FED-KIIT', true, {}, validity);
-        res.json(message);
+        const sentOtp = await sendOtpToMail(email, OtpPurpose.EMAIL_VERIFICATION, 'registerUserOTP', 'OTP for registering on FED-KIIT', true, {}, validity);
+        if(!sentOtp.id){
+
+        }
+        res.status(sentOtp.status).json(sentOtp.message);
+
+        console.log("otp sent successfully", sentOtp)
 
 
     } catch (error) {
-        if(error.statusCode === 981){
-            next(new ApiError(500, "Retry after some time", error));
-        }
         console.error('Error in sending OTP process:', error);
         next(new ApiError(500, "Error in sending OTP process", error));
     }

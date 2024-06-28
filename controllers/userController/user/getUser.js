@@ -3,38 +3,31 @@ const prisma = new PrismaClient();
 const expressAsyncHandler = require('express-async-handler');
 const { ApiError } = require('../../../utils/error/ApiError');
 
-//@description     Fetch User by Dynamic Field
-//@route           GET /api/user/query?value=<value>
-//@access          Admin
+// Fetch User by Dynamic Field from req.body
 const fetchUser = expressAsyncHandler(async (req, res, next) => {
     try {
-        const { value } = req.query;
+        // Check if req.body is empty
+        // if (Object.keys(req.body).length === 0) {
+        //     return next(new ApiError(400, "Parameters required"));
+        // }
 
-        if (!value) {
-            return next(new ApiError(400, 'Value must be provided'));
-        }
-
-        // Fetch the user based on possible fields using OR condition
-        const user = await prisma.user.findFirst({
-            where: {
-                OR: [
-                    { email: value },
-                    { name: value },
-                    { rollNumber: value},
-                    { contactNo: value },
-                    { whatsappNo: value }
-                ],
-            },
+        // Directly use req.body as where condition
+        const users = await prisma.user.findMany({
+            where: req.body,
         });
 
-        if (!user) {
+        if (users.length === 0) {
             return next(new ApiError(404, 'User not found'));
         }
 
         // Remove sensitive data like password before sending response
-        delete user.password;
+        const sanitizedUsers = users.map(user => {
+            const { password, ...sanitizedUser } = user;
+            return sanitizedUser;
+        });
 
-        res.status(200).json({ success: true, data: user });
+        // Return the most relevant results (here simply returning all matches)
+        res.status(200).json({ success: true, data: sanitizedUsers });
     } catch (error) {
         console.error('Error fetching user:', error);
         next(new ApiError(500, 'Error fetching user', error));

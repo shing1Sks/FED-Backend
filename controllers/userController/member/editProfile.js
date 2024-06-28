@@ -6,46 +6,26 @@ const deleteImage = require('../../../utils/image/deleteImage');
 const uploadImage = require('../../../utils/image/uploadImage');
 const fs = require('fs');
 const path = require('path');
-const createOrUpdateUser = require('../../../utils/user/createOrUpdateUser');
+const updateUser = require('../../../utils/user/updateUser');
 
 // @description     Update User Details
 // @route           PUT /api/user/update
 // @access          Members
-const updateUser = expressAsyncHandler(async (req, res, next) => {
+const editProfile = expressAsyncHandler(async (req, res, next) => {
     const { email, password, access, extra, ...rest } = req.body;
 
     try {
 
-        let updatedMember = currentUser.extra ? { ...currentUser.extra } : {};
-
+        let updatedExtra = req.user? req.user.extra: null;
         if (extra) {
-            const { github, linkedin, img } = extra;
-
+            const { github, linkedin } = extra;
             // Update member object with new values
-            if (github) updatedMember.github = github;
-            if (linkedin) updatedMember.linkedin = linkedin;
-
-            // Check if request contains a file -> seperate route to be created 
-            // if (req.file) {
-            //     const newFilePath = req.file.path;
-
-            //     // Delete existing image if img exists in the member object
-            //     if (updatedMember.img) {
-            //         await deleteImage(updatedMember.img);
-            //     }
-
-            //     // Upload new image
-            //     const uploadedImage = await uploadImage(newFilePath);
-
-            //     // Update img with the new image URL
-            //     updatedMember.img = uploadedImage.secure_url;
-            // } else if (img) {
-            //     updatedMember.img = img;
-            // }
+            if (github) updatedExtra.github = github;
+            if (linkedin) updatedExtra.linkedin = linkedin;
         }
 
         // Update the user details
-        const updatedUser = await createOrUpdateUser({email : email}, rest, {access : req.user.access})
+        const updatedUser = await updateUser({email : req.user.email}, rest, {extra: updatedExtra})
 
         // Remove sensitive information from updatedUser
         delete updatedUser.password;
@@ -66,4 +46,4 @@ const updateUser = expressAsyncHandler(async (req, res, next) => {
     }
 });
 
-module.exports = { updateUser };
+module.exports = { editProfile };
