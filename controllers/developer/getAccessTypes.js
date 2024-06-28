@@ -1,20 +1,21 @@
-const AccessTypes = require('../../enum/access');
-const expressAsyncHandler = require('express-async-handler');
+const express = require('express');
+const router = express.Router();
+const { AccessTypes } = require('@prisma/client');
+const { ApiError } = require('../../utils/error/ApiError');
 
-// @description     Get all access types
-// @route           GET /api/accessTypes
-// @access          To be decided
-const getAccessTypes = expressAsyncHandler(async (req, res, next) => {
+//@description     Get all Access Types
+//@route           GET /api/user/getAccessTypes
+//@access          Admin
+const getAccessTypes = async (req, res, next) => {
     try {
-        res.status(200).json({
-            success: true,
-            data: AccessTypes,
-        });
+        // Return all access types
+        res.status(200).json({ success: true, data: Object.values(AccessTypes) });
     } catch (error) {
         console.error('Error fetching access types:', error);
         next(new ApiError(500, 'Error fetching access types', error));
     }
-});
+};
 
-module.exports = { getAccessTypes };
-// ADMIN
+router.get('/accessTypes', getAccessTypes);
+
+module.exports = router;

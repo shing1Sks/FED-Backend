@@ -7,7 +7,7 @@ const { login } = require("./loginController");
 const { promises } = require("nodemailer/lib/xoauth2");
 
 // SET OTP validity in minutes
-const validity = 5;
+const validity = 10;
 
 //@description     Forgot Password
 //@route           POST /api/user/verifyEmail
@@ -34,7 +34,7 @@ const verifyEmail = expressAsyncHandler(async (req, res, next) => {
         }
 
         // Send OTP for email verification
-        const message = await sendOtpToMail(email, OtpPurpose.EMAIL_VERIFICATION, 'registerUserOTP', 'OTP for registering on FED-KIIT', false, {}, validity);
+        const message = await sendOtpToMail(email, OtpPurpose.EMAIL_VERIFICATION, 'registerUserOTP', 'OTP for registering on FED-KIIT', true, {}, validity);
         res.json(message);
 
 

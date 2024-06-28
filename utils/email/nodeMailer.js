@@ -14,7 +14,7 @@ function sendMail(to, subject, htmlContent) {
                 console.log('Error:', err);
                 reject(err);
             } else {
-                console.log('Email sent successfully');
+                console.log('Email sent successfully', data);
                 resolve(data);
             }
         });

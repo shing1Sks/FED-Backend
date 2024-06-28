@@ -17,6 +17,8 @@ const sendOtpToMail = async (email, purpose, templateName, subject, allowRetry =
             where: { email: email, for: purpose },
         });
 
+        console.log(existingOtp);
+
         if (existingOtp && !existingOtp.allowRetry) {
             throw new ApiError(981, `OTP already exists. Please, retry after some time`);
         }
@@ -41,7 +43,9 @@ const sendOtpToMail = async (email, purpose, templateName, subject, allowRetry =
                 otp: generatedOTP,
                 age : validity,
                 for: purpose,
-                allowRetry: allowRetry
+                allowRetry: allowRetry,
+                template : templateName,
+                subject : subject
             },
             select : {
                 id : true

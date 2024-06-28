@@ -11,6 +11,8 @@ model otp {
   age         Float      
   allowRetry  Boolean
   for         OtpPurpose
+  subject     String
+  template    String
 
   @@unique([email, for])
   @@map("otp")

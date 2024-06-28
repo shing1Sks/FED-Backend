@@ -12,7 +12,7 @@ const deleteMember = expressAsyncHandler(async (req, res, next) => {
     try {
 
         // Update the user to set the member field to null
-        const updatedUser = await createOrUpdateUser({email : req.body.email},data,{ access : AccessTypes.USER })
+        const updatedUser = await createOrUpdateUser({email : req.body.email},{},{ access : AccessTypes.USER })
         if (!updatedUser) {
             return next(new ApiError(404, 'User not found'));
         }

@@ -26,7 +26,7 @@ const forgetPassword = expressAsyncHandler(async (req, res, next) => {
     });
 
     if (!existingUser) {
-        return next(new ApiError(400, "User does not exist"));
+        return next(new ApiError(400, "User not found!"));
     }
 
     try {

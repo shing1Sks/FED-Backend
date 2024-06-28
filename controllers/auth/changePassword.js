@@ -33,6 +33,9 @@ const changePassword = expressAsyncHandler(async (req, res, next) => {
         console.log("is valid otp", isValidOTP);
 
 
+        console.log("passing step 3");
+
+
         if (!isValidOTP) {
             console.log("invalid otp");
             return next(new ApiError(400,"Invalid OTP"))
@@ -41,15 +44,29 @@ const changePassword = expressAsyncHandler(async (req, res, next) => {
         
         const hashedPassword = await bcrypt.hash(newPassword, 10);
         const override = { password : hashedPassword };
+        console.log("wrking ")
         const user = await createOrUpdateUser({email : email},{email : email}, override)
+        console.log("step 4");
         if(!user){
-
+           return next( new ApiError(400, "error creating user"))
         }
         res.json({ message: "Password has been changed successfully !!" });
         console.log("Password changed successfully");
 
+        // Delete the OTP in the background using a Promise
+        new Promise((resolve, reject) => {
+            prisma.otp.delete({
+                where: {id : isValidOTP.id }
+            }).then(() => {
+                resolve();
+            }).catch(error => {
+                console.error('Error deleting OTP:', error);
+                reject(error);
+            });
+        });
+
     } catch (error) {
-        next(new ApiError(500, "Error while changing password, regenerate the OTP", error));
+        next(new ApiError(500, "Error while changing password", error));
     }
 });
 

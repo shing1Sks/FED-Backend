@@ -1,13 +1,33 @@
 const { ApiError } = require('../../utils/error/ApiError');
-const { USER } = require('../../enum/access')
+const { PrismaClient, AccessTypes } = require("@prisma/client");
+const prisma = new PrismaClient();
 
 const isMember = async (req, res, next) => {
-    try {1
-        if (req.user.access === USER) {
-            throw new ApiError(403, 'Unauthorized', [], null);
+    console.log("Entering isMember middleware");
+    try {
+        if (req.user) {
+            console.log("Verifying through req.user");
+            if (req.user.access === AccessTypes.USER) {
+                throw new ApiError(403, 'Unauthorized', [], null);
+            }
+        } else {
+            console.log("Verifying through req.body");
+            if (!req.body.email) {
+                throw new ApiError(400, "Email is required");
+            }
+            const user = await prisma.user.findUnique({
+                where: {
+                    email: req.body.email
+                }
+            });
+            if (!user || user.access === AccessTypes.USER) {
+                throw new ApiError(404, "User not found or unauthorized");
+            }
+            req.user = user;
         }
         next();
     } catch (error) {
+        console.log("Could not pass isMember middleware");
         next(error);
     }
 };
