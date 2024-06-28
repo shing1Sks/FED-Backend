@@ -38,10 +38,10 @@ const register = expressAsyncHandler(async (req, res, next) => {
         // Verify OTP -> Assuming that unique user constraint is handled in verifyEmailController
         const isValidOTP = await verifyOTP(email, otp, OtpPurpose.EMAIL_VERIFICATION);
 
-        
         // Log the otp verification if on DEBUG mode
         if (process.env.DEBUG === "true") {
-            console.log(isValidOTP);;
+            console.log(isValidOTP);
+            console.log(isValidOTP.otp.id);
         }
 
         // Check if the OTP is valid
@@ -75,7 +75,7 @@ const register = expressAsyncHandler(async (req, res, next) => {
         // Delete the OTP in the background using a Promise
         new Promise((resolve, reject) => {
             prisma.otp.delete({
-                where: {id : isValidOTP.id }
+                where: {id : isValidOTP.otp.id }
             }).then(() => {
                 resolve();
             }).catch(error => {
