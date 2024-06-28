@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs');
 const expressAsyncHandler = require('express-async-handler');
 const { ApiError } = require('../../utils/error/ApiError');
 const verifyOtp = require('../../utils/otp/verifyOtp');
-const createOrUpdateUser = require('../../utils/user/createOrUpdateUser');
+const updateUser = require('../../utils/user/updateUser');
 
 //@description     Changing Password
 //@route           POST /api/user/changePassword
@@ -21,36 +21,31 @@ const changePassword = expressAsyncHandler(async (req, res, next) => {
         }
         // Check if both the password matches
         if (newPassword !== confirmPassword) {
-            return res.status(400).json({ message: "New and confirm Passwords do not match!!" });
+            next(new ApiError(409,"Conflict : New Password and confirm Password did not match!!"))
         }
         console.log("passing step 1");
 
 
         //verify OTP -> Assuming that unique user constaint is handeleted in verifyEmailController
         const isValidOTP = await verifyOtp( email, otp, OtpPurpose.FORGOT_PASSWORD, false)
-        console.log("passing step2");
+        // console.log("passing step2");
+        // console.log("is valid otp", isValidOTP);
+        // console.log("passing step 3");
 
-        console.log("is valid otp", isValidOTP);
-
-
-        console.log("passing step 3");
-
-
-        if (!isValidOTP) {
+        if (!isValidOTP.id) {
             console.log("invalid otp");
-            return next(new ApiError(400,"Invalid OTP"))
+            return next(new ApiError(isValidOTP.status,"Invalid OTP"))
         }
 
-        
         const hashedPassword = await bcrypt.hash(newPassword, 10);
         const override = { password : hashedPassword };
         console.log("wrking ")
-        const user = await createOrUpdateUser({email : email},{email : email}, override)
+        const user = await updateUser({email : email},{}, override)
         console.log("step 4");
         if(!user){
            return next( new ApiError(400, "error creating user"))
         }
-        res.json({ message: "Password has been changed successfully !!" });
+        res.status(201).json({ message: "Password has been changed successfully !!" });
         console.log("Password changed successfully");
 
         // Delete the OTP in the background using a Promise

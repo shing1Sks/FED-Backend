@@ -14,7 +14,7 @@ const verifyOtp = async (email, otp, purpose, deleteOtp = false) => {
         console.log(hasOtp);
 
         if (!hasOtp) {
-            return { message: "OTP mismatch or not found", expired: false, otp: null };
+            return { message: "OTP mismatch or not found", expired: false, id: null, status : 404 };
         }
 
         // Calculate if the OTP has expired
@@ -22,14 +22,19 @@ const verifyOtp = async (email, otp, purpose, deleteOtp = false) => {
         const otpCreationTime = new Date(hasOtp.createdAt);
         const otpValidityDuration = hasOtp.age * 60000;
         const otpExpirationTime = new Date(otpCreationTime.getTime() + otpValidityDuration);
-
+        
+        console.log(currentTime);
+        console.log(otpCreationTime);
+        console.log(otpValidityDuration);
+        console.log(otpExpirationTime);
+        
         if (currentTime > otpExpirationTime) {
 
             console.log("OTP has expired, sending a new OTP");
             // Send the new OTP to the user
 
             // Use Promise to send the email
-            sendOtpToMail(email, hasOtp.for, hasOtp.template, hasOtp.subject, true, {}, hasOtp.age)
+            const updatedOtp = sendOtpToMail(email, hasOtp.for, hasOtp.template, hasOtp.subject, true, {}, hasOtp.age)
                 .then(() => {
                     console.log(`OTP sent successfully to ${email}`);
                 })
@@ -37,7 +42,7 @@ const verifyOtp = async (email, otp, purpose, deleteOtp = false) => {
                     console.error('Error sending OTP:', error);
                 });
 
-            return { message: `OTP expired. A new OTP has been sent to ${email}.`, expired: true, otp: updatedOtp };
+            return { message: `OTP expired. A new OTP has been sent to ${email}.`, expired: true, is: updatedOtp.id, status : 201 };
         }
 
         if (deleteOtp) {
@@ -50,7 +55,7 @@ const verifyOtp = async (email, otp, purpose, deleteOtp = false) => {
             }
         }
 
-        return { message: "Valid OTP", expired: false, otp: hasOtp }; // OTP verified successfully
+        return { message: "Valid OTP", expired: false, id:hasOtp.id, status : 200 }; // OTP verified successfully
     } catch (error) {
         console.error('Error verifying OTP:', error);
         throw new ApiError(error.statusCode || 500, 'Error verifying OTP', error);

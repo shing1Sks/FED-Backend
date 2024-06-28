@@ -17,10 +17,11 @@ const sendOtpToMail = async (email, purpose, templateName, subject, allowRetry =
             where: { email: email, for: purpose },
         });
 
-        console.log(existingOtp);
+        console.log("Existing otp : ",existingOtp);
 
         if (existingOtp && !existingOtp.allowRetry) {
-            throw new ApiError(981, `OTP already exists. Please, retry after some time`);
+            console.log("Retry is not allowed")
+            return({message: "OTP already exist! retry after some time" , id : existingOtp.id, status : 400})
         }
 
         const generatedOTP = generateOtp();
@@ -52,7 +53,7 @@ const sendOtpToMail = async (email, purpose, templateName, subject, allowRetry =
             }
         });
 
-        console.log(dbEntry);
+        console.log("DBEntry ",dbEntry);
 
         const templateContent = loadTemplate(templateName, { otp: generatedOTP, validity: validity, ...placeholders });
         await sendMail(email, subject, templateContent);
@@ -64,14 +65,14 @@ const sendOtpToMail = async (email, purpose, templateName, subject, allowRetry =
                     where: { id : dbEntry.id},
                 });
             } catch (error) {
-                console.error('Error deleting expired OTP:', error);
+                console.error('Error deleting OTP:', error);
             }
         }, 60000 * validity);
 
-        return { message: `OTP sent successfully to ${email}. Valid for ${validity} mins` };
+        return { message: `OTP sent successfully to ${email}. Valid for ${validity} mins`, id : dbEntry.id, status : 201 };
     } catch (error) {
-        console.error('Error in OTP process:', error);
-        throw new ApiError(error.statusCode, "Error in sending OTP ", error);
+        console.error("Error in generateOtpAndSendMail function", error);
+        throw new ApiError(400, "Error in sending OTP ", error);
     }
 };
 

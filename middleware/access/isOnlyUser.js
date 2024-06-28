@@ -2,15 +2,11 @@ const { ApiError } = require('../../utils/error/ApiError');
 const { PrismaClient, AccessTypes } = require("@prisma/client");
 const prisma = new PrismaClient();
 
-const getAllAccessTypes = () => Object.values(AccessTypes);
-
-const isUser = async (req, res, next) => {
+const isOnlyUser = async (req, res, next) => {
     try {
-        const allowedAccessTypes = getAllAccessTypes();
-
         if (req.user) {
             console.log("req.user exists");
-            if (!allowedAccessTypes.includes(req.user.access)) {
+            if (req.user.access !== AccessTypes.USER || req.user.access !== AccessTypes.ADMIN ) {
                 throw new ApiError(403, 'Unauthorized', [], null);
             }
         } else {
@@ -22,7 +18,7 @@ const isUser = async (req, res, next) => {
                     email: req.body.email
                 }
             });
-            if (!user || !allowedAccessTypes.includes(user.access)) {
+            if (!user || user.access !== AccessTypes.USER || req.user.access !== AccessTypes.ADMIN) {
                 throw new ApiError(404, "User not found or unauthorized");
             }
             req.user = user;
@@ -34,4 +30,4 @@ const isUser = async (req, res, next) => {
     }
 };
 
-module.exports = { isUser };
+module.exports = { isOnlyUser };

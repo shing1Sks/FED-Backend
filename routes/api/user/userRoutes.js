@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { updateUser, addMember, fetchUser, fetchTeam, deleteMember, deleteUser } = require('../../../controllers/userController/userController');
+const { addMember, fetchUser, fetchTeam, deleteMember, deleteUser, editProfile } = require('../../../controllers/userController/userController');
 const { verifyToken } = require('../../../middleware/verifyToken');
 const { isMember, isUser, isAdmin } = require('../../../middleware/access/userAccess');
 const upload = require('../../../middleware/multer');
@@ -13,12 +13,12 @@ router.get('/team',fetchTeam)
 // router.post('/uploadImage', upload.single('image'),uploadImage) 
 
 router.use(verifyToken)
-router.put('/editDetails', isMember, updateUser)
+router.put('/editDetails', isMember, editProfile)
 
 
 router.use(isAdmin)
 router.post("/addMember", addMember)
-router.get("/:email", fetchUser)
+router.get("/getUser", fetchUser)
 router.delete("/deleteMember", deleteMember)
 router.delete("/deleteUser",deleteUser)
 

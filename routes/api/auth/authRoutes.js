@@ -15,7 +15,7 @@ const { isUser } = require('../../../middleware/access/userAccess');
 router.post('/login', loginValidationRules(), validate, isUser, login);
 
 // Routes to register a new user
-router.post('/verifyEmail',isUser,verifyEmail)
+router.post('/verifyEmail', verifyEmail)
 router.post('/register', registerValidationRules(),validate, register);
 
 // Routes to change password of existing user

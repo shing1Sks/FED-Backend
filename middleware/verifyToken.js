@@ -8,6 +8,9 @@ const verifyToken = async (req, res, next) => {
     
     // Extract the token from cookies or headers
     let token = req.cookies.token;
+    if(!token){
+        throw new ApiError(401,"token is required");
+    }
 
     // Check if token exists and starts with "Bearer "
     if (token && token.startsWith("Bearer ")) {
@@ -42,16 +45,19 @@ const verifyToken = async (req, res, next) => {
 
     } catch (err) {
         console.log("Error during token verification:", err);
-
-        if (err.name === 'TokenExpiredError') {
+        if(err.statusCode === 401){
+            console.log("Token not found in headers");
+            return next(new ApiError(401, "Unauthorized: Resend request with token",err));
+        }
+        else if (err.name === 'TokenExpiredError') {
             console.log("Token has expired");
-            return next(new ApiError(401, "Unauthorized: Token has expired"));
+            return next(new ApiError(403, "Unauthorized: Token has expired",err));
         } else if (err.name === 'JsonWebTokenError') {
             console.log("Invalid token");
-            return next(new ApiError(403, "Forbidden: Invalid token"));
+            return next(new ApiError(401, "Forbidden: Invalid token",err));
         } else {
             console.log("Unexpected error");
-            return next(new ApiError(500, "Internal Server Error"));
+            return next(new ApiError(500, "Internal Server Error",err));
         }
     }
 };
