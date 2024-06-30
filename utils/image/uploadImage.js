@@ -1,5 +1,5 @@
 // uploadImage.js
-const cloudinary = require('../../utils/image/cloudinary');
+const cloudinary = require('../../config/cloudinary');
 const fs = require('fs');
 const ApiError = require('../../utils/error/ApiError');
 

@@ -39,6 +39,17 @@ app.use(jsonParseErrorHandler);
 // Error-handling middleware - should be at the end
 app.use(errorHandler);
 
+const { imageUpload, excelUpload } = require('./middleware/upload');
+const { addMembersThroughExcel } = require('./controllers/userController/userController');
+
+// Route for uploading images
+app.post('/user/editImage', imageUpload.single('file'), (req, res) => {
+    res.status(200).json({ message: 'Image uploaded successfully', file: req.file });
+});
+
+// Route for uploading Excel files
+app.post('/user/addMemberExcel', excelUpload.single('file'), addMembersThroughExcel);
+
 // Example routes for sending mail and deleting images
 app.post('/mail', (req, res) => {
     const otp = 1234;

@@ -1,12 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const { AccessTypes } = require('@prisma/client');
-const { ApiError } = require('../../utils/error/ApiError');
+const { ApiError } = require('../../../utils/error/ApiError');
 
 //@description     Get all Access Types
 //@route           GET /api/user/getAccessTypes
 //@access          Admin
-const getAccessTypes = async (req, res, next) => {
+const fetchAccessTypes = async (req, res, next) => {
     try {
         // Return all access types
         res.status(200).json({ success: true, data: Object.values(AccessTypes) });
@@ -16,6 +16,5 @@ const getAccessTypes = async (req, res, next) => {
     }
 };
 
-router.get('/accessTypes', getAccessTypes);
 
-module.exports = router;
+module.exports = {fetchAccessTypes};

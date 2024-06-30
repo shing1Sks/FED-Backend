@@ -4,7 +4,7 @@ const createUser = require('./createUser');
 const updateUser = require('./updateUser');
 const { ApiError } = require('../error/ApiError');
 
-const createOrUpdateUser = async (key, data, override = {}, sendMailFlag = true) => {
+const createOrUpdateUser = async (key, data, override = {}, sendMailFlag = false) => {
     console.log("Entering create or update user function");
     
     // Determine the key if not provided

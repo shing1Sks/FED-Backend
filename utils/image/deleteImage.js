@@ -1,4 +1,4 @@
-const cloudinary = require('../../utils/image/cloudinary');
+const cloudinary = require('../../config/cloudinary');
 const ApiError = require('../../utils/error/ApiError');
 
 const deleteImage = async (imageUrl) => {
