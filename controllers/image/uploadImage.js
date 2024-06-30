@@ -1,6 +1,6 @@
 // uploadImage.js
-const cloudinary = require('../../utils/image/cloudinary');
-const upload = require('../../middleware/multer');
+const cloudinary = require('../../config/cloudinary');
+const upload = require('../../middleware/upload');
 const expressAsyncHandler = require('express-async-handler');
 const ApiError = require('../../utils/error/ApiError');
 const fs = require('fs');
