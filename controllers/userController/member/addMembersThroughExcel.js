@@ -16,6 +16,7 @@ const addMembersThroughExcel = expressAsyncHandler(async (req, res, next) => {
         }
 
         const filePath = req.file.path;
+        console.log("incoming file path",filePath);
         const workbook = XLSX.readFile(filePath);
         const sheetNameList = workbook.SheetNames;
         const data = XLSX.utils.sheet_to_json(workbook.Sheets[sheetNameList[0]]);
@@ -62,6 +63,8 @@ const addMembersThroughExcel = expressAsyncHandler(async (req, res, next) => {
                 results.push({ status: 'error', message: error.message, entry: entry });
             }
         }
+
+        console.log("File path before delete ", filePath);
 
         // Unlink (delete) the file after processing
         fs.unlink(filePath, (err) => {

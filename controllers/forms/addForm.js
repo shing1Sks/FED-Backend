@@ -19,8 +19,8 @@ const addForm = async (req, res, next) => {
         }
 
         // Check if minteamsize is less than 0
-        if (req.body.minteamsize < 0) {
-            next(new ApiError(400, 'Min team size cannot be less than 0'));
+        if (req.body.minteamsize < 0 || req.body.maxteamsize < 0) {
+            next(new ApiError(400, 'Min/Maximum team size cannot be less than 0'));
         }
 
         // Create new form using Prisma

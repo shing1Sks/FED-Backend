@@ -7,8 +7,9 @@ const { ApiError } = require('../../utils/error/ApiError');
 // @access          Admins
 const addSection = async (req, res, next) => {
     try {
-        const { formId } = req.body;
+        const { formId, id } = req.body;
         console.log(formId)
+        console.log(id)
 
         // Check if the form exists
         const formExists = await prisma.form.findUnique({
@@ -23,12 +24,12 @@ const addSection = async (req, res, next) => {
         const sectionExists = await prisma.section.findFirst({
             where: {
                 formId: formId,
-                sectionNo: req.body.sectionNo
+                id:req.body.id
             }
         });
 
         if (sectionExists) {
-            return next(new ApiError(400, 'Section number already exists in this form'));
+            return next(new ApiError(400, 'Section id already exists in this form'));
         }
 
         // Create new section using Prisma

@@ -49,7 +49,7 @@ app.post('/user/editImage', imageUpload.single('file'), (req, res) => {
 
 // Route for uploading Excel files
 app.post('/user/addMemberExcel', excelUpload.single('file'), addMembersThroughExcel);
-
+    
 // Example routes for sending mail and deleting images
 app.post('/mail', (req, res) => {
     const otp = 1234;
