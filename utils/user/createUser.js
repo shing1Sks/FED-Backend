@@ -6,15 +6,15 @@ const { sendMail } = require('../email/nodeMailer');
 const loadTemplate = require('../email/loadTemplate');
 
 const DEFAULT_VALUES = {
-    name: "Generated",
+    name: "NA",
     access: AccessTypes.USER,
-    year: "Generated",
-    img: "noimage",
-    rollNumber: "Generated",
-    school: "Generated",
-    college: "Generated",
-    contactNo: "Generated",
-    whatsappNo: "Generated",
+    year: "NA",
+    img: "NA",
+    rollNumber: "NA",
+    school: "NA",
+    college: "NA",
+    contactNo: "NA",
+    whatsappNo: "NA",
     forms: [],
     extra: {},
 };
