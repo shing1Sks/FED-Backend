@@ -40,7 +40,7 @@ router.post('/changePassword',isUser, changePassword)
 
 // router.post('/register', registerValidationRules(), validate, upload.single('image'), register);
 
-// not to be used 
+// To be not used 
 router.post('logout', logout)
 
 module.exports = router;

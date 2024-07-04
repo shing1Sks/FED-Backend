@@ -1,8 +1,5 @@
-const loginFailed = (req, res) => {
-    res.status(401).json({
-        error: true,
-        message: "Log in failure",
-    });
+const ApiError = require('../../../utils/error/ApiError')
+const loginFailed = (req, res, next) => {
+    next(new ApiError(401,"Log in falied"))
 }
-
 module.exports = {loginFailed};
