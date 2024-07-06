@@ -10,50 +10,50 @@ const sendOtpToMail = async (email, purpose, templateName, subject, allowRetry =
         throw new ApiError(400, "Email, purpose, templateName, and subject are required");
     }
 
-    console.log(email, purpose, templateName, subject, allowRetry, placeholders, validity)
+    console.log(email, purpose, templateName, subject, allowRetry, placeholders, validity);
 
     try {
         let existingOtp = await prisma.otp.findFirst({
             where: { email: email, for: purpose },
         });
 
-        console.log("Existing otp : ",existingOtp);
+        console.log("Existing otp : ", existingOtp);
 
         if (existingOtp && !existingOtp.allowRetry) {
-            console.log("Retry is not allowed")
-            return({message: "OTP already exist! retry after some time" , id : existingOtp.id, status : 400})
+            console.log("Retry is not allowed");
+            throw new ApiError(400, "OTP already exists! Retry after some time");
         }
 
         const generatedOTP = generateOtp();
 
         // Upsert logic based on allowRetry flag
         const dbEntry = await prisma.otp.upsert({
-            where: { 
+            where: {
                 email_for: {
-                    email : email, 
-                    for : purpose
+                    email: email,
+                    for: purpose,
                 },
             },
-            update: { 
+            update: {
                 otp: generatedOTP,
-                age : validity,
-                allowRetry 
-             },
+                age: validity,
+                allowRetry,
+            },
             create: {
                 email: email,
                 otp: generatedOTP,
-                age : validity,
+                age: validity,
                 for: purpose,
                 allowRetry: allowRetry,
-                template : templateName,
-                subject : subject
+                template: templateName,
+                subject: subject,
             },
-            select : {
-                id : true
-            }
+            select: {
+                id: true,
+            },
         });
 
-        console.log("DBEntry ",dbEntry);
+        console.log("DBEntry ", dbEntry);
 
         const templateContent = loadTemplate(templateName, { otp: generatedOTP, validity: validity, ...placeholders });
         await sendMail(email, subject, templateContent);
@@ -62,17 +62,23 @@ const sendOtpToMail = async (email, purpose, templateName, subject, allowRetry =
         setTimeout(async () => {
             try {
                 await prisma.otp.delete({
-                    where: { id : dbEntry.id},
+                    where: { id: dbEntry.id },
                 });
             } catch (error) {
                 console.error('Error deleting OTP:', error);
             }
         }, 60000 * validity);
 
-        return { message: `OTP sent successfully to ${email}. Valid for ${validity} mins`, id : dbEntry.id, status : 201 };
+        return { message: `OTP sent successfully to ${email}. Valid for ${validity} mins`, id: dbEntry.id, status: 201 };
     } catch (error) {
-        console.error("Error in generateOtpAndSendMail function", error);
-        throw new ApiError(400, "Error in sending OTP ", error);
+        console.error("Error in sendOtpToMail function", error);
+        if (error instanceof ApiError) {
+            // Rethrow known ApiError
+            throw error;
+        } else {
+            // Handle unexpected errors
+            throw new ApiError(500, "Internal Server Error", error);
+        }
     }
 };
 

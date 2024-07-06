@@ -5,20 +5,6 @@ const generateOtp = require('../otp/generateOTP');
 const { sendMail } = require('../email/nodeMailer');
 const loadTemplate = require('../email/loadTemplate');
 
-const DEFAULT_VALUES = {
-    name: "NA",
-    access: AccessTypes.USER,
-    year: "NA",
-    img: "NA",
-    rollNumber: "NA",
-    school: "NA",
-    college: "NA",
-    contactNo: "NA",
-    whatsappNo: "NA",
-    forms: [],
-    extra: {},
-};
-
 const createUser = async (data, override = {}, sendMailFlag = false) => {
     console.log(data, override, sendMailFlag);
     console.log("Creating new user");
@@ -44,7 +30,6 @@ const createUser = async (data, override = {}, sendMailFlag = false) => {
     try {
         const user = await prisma.user.create({
             data: {
-                ...DEFAULT_VALUES,
                 password: hashedPassword,
                 ...data,
                 ...override,

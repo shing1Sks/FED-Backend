@@ -19,9 +19,7 @@ const login = expressAsyncHandler(async (req, res, next) => {
         // if (!user) {
         //     return next(new ApiError(404, 'User not found'));
         // }
-        // if(process.env.DEBUG === "true"){
-        //     console.log("User details in - ./controllers/auth/loginController -> login function \n", user)
-        // }
+
         const isPasswordValid = await bcrypt.compare(req.body.password, req.user.password);
 
         if (!isPasswordValid) {

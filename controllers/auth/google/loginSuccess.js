@@ -32,13 +32,16 @@ const loginSuccess = expressAsyncHandler(async(req, res) => {
                     data.password = req.user.id
 
                     console.log("data : ",data);
-                    const newUser = createUser(data,{},false)
-                    if(!newUser){
-                        return next(new ApiError(500, "Unable to create user at this moment!"))
-                    }
 
-                    // frontend redirect url
-                    res.redirect("http://localhost:5000/api/auth/googleRegister")
+                    res.status(404).json({status: "User not found" ,data : data})
+
+                    // const newUser = createUser(data,{},false)
+                    // if(!newUser){
+                    //     return next(new ApiError(500, "Unable to create user at this moment!"))
+                    // }
+
+                    // // frontend redirect url
+                    // res.redirect("http://localhost:5000/api/auth/googleRegister")
                 }
                 else{
                     const token = jwt.sign({ id: user.id, email: user.email, loginTime: new Date().toISOString() }, process.env.JWT_SECRET, { expiresIn: '7h' });

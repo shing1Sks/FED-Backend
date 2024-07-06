@@ -9,7 +9,7 @@ const verifyToken = async (req, res, next) => {
     // Extract the token from cookies or headers
     let token = req.cookies.token;
     if(!token){
-        throw new ApiError(401,"token is required");
+        return next(new ApiError(401,"token is required"));
     }
 
     // Check if token exists and starts with "Bearer "
@@ -48,7 +48,7 @@ const verifyToken = async (req, res, next) => {
         if(err.statusCode === 401){
             console.log("Token not found in headers");
             return next(new ApiError(401, "Unauthorized: Resend request with token",err));
-        }
+        }   
         else if (err.name === 'TokenExpiredError') {
             console.log("Token has expired");
             return next(new ApiError(403, "Unauthorized: Token has expired",err));

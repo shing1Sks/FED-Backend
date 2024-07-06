@@ -3,10 +3,17 @@ const cloudinary = require('../../config/cloudinary');
 const fs = require('fs');
 const ApiError = require('../../utils/error/ApiError');
 
-const uploadImage = async (filePath) => {
+const uploadImage = async (filePath, folder = 'MemberImages') => {
     try {
         console.log("Uploading file:", filePath);
-        const result = await cloudinary.uploader.upload(filePath);
+        const result = await cloudinary.uploader.upload(
+            filePath,
+            { folder: folder },
+            (error, result) => {
+                console.log(result, error);
+            }
+
+        );
         // Remove file from server after upload to Cloudinary
         fs.unlinkSync(filePath);
 

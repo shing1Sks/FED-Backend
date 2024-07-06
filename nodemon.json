@@ -1,5 +1,5 @@
 {
-  "watch": ["*.js", "*.json", ".env"],
+  "watch": ["*.js", "*.json", ".env","*.prisma"],
   "ext": "js,json,env",
   "ignore": ["node_modules/*"]
 }
