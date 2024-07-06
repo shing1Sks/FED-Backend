@@ -1,5 +1,9 @@
 enum AccessTypes {
   ADMIN
+
+  PRESIDENT
+  VICEPRESIDENT
+
   USER
 
   DIRECTOR_CREATIVE
@@ -11,7 +15,7 @@ enum AccessTypes {
   CREATIVE
   TECHNICAL
   MARKETING
-  OPERATION
+  OPERATIONS
   SPONSORSHIP
   ALUMNI
 }
@@ -21,15 +25,15 @@ model user {
   email      String             @unique 
   name       String             
   access     AccessTypes        @default(USER)
-  year       String             
+  year       String?
   img        String?            
   blurhash   String?            
   password   String         
-  rollNumber String             
-  school     String             
-  college    String             
-  contactNo  String             
-  whatsappNo String             
+  rollNumber String?             
+  school     String?             
+  college    String?             
+  contactNo  String?            
+  whatsappNo String?            
   extra      Json?
   forms      String[]           @default([])
   userForms  formRegistration[]

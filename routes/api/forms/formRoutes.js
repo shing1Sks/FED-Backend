@@ -3,7 +3,7 @@ const router = express.Router();
 const formController = require('../../../controllers/forms/formController')
 const registrationController = require('../../../controllers/registration/registrationController');
 const {verifyToken} = require('../../../middleware/verifyToken');
-const { isAdmin, isUser, isMember } = require('../../../middleware/access/userAccess');
+const { checkAccess } = require('../../../middleware/access/checkAccess');
 
 // Add validations
 // Define your form routes here
@@ -12,13 +12,13 @@ router.get('/getAllForms',formController.getAllForms)
 
 router.use(verifyToken)
 
-router.use('/register', isUser, registrationController.addRegistration)
+router.use('/register', checkAccess('USER'), registrationController.addRegistration)
 
 
-router.get('/registrationCount', isMember, registrationController.getRegistrationCount)
+router.get('/registrationCount', checkAccess('MEMBER'), registrationController.getRegistrationCount)
 
 // Add middleware verifyToken, isAdmin
-router.use(isAdmin)
+router.use(checkAccess('ADMIN'))
 
 router.post('/addForm', formController.addForm )
 router.delete('/deleteForm/:id', formController.deleteForm)

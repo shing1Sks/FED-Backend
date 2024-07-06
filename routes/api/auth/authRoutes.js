@@ -9,11 +9,12 @@ const passport = require('passport');
 // Import the auth controllers required
 const { login, verifyEmail, register, forgetPassword, changePassword, logout } = require('../../../controllers/auth/authController');
 // const {googleCallback} = require('../../../controllers/auth/google/googleCallback')
-const {loginSuccess} = require('../../../controllers/auth/google/loginSuccess')
-const {loginFailed} = require('../../../controllers/auth/google/loginFailed')
+const { loginSuccess } = require('../../../controllers/auth/google/loginSuccess')
+const { loginFailed } = require('../../../controllers/auth/google/loginFailed')
 
 // Import the middlewares required
-const { isUser } = require('../../../middleware/access/userAccess');
+const { checkAccess } = require('../../../middleware/access/checkAccess');
+const { AccessTypes } = require('@prisma/client');
 
 // Define the authentication routes here
 router.get(
@@ -27,15 +28,15 @@ router.get('/login/success', loginSuccess);
 router.get('/login/failed', loginFailed);
 
 // Routes to login for existing user
-router.post('/login', loginValidationRules(), validate, isUser, login);
+router.post('/login', loginValidationRules(), validate, checkAccess('USER', 'MEMBER'), login);
 
 // Routes to register a new user
 router.post('/verifyEmail', verifyEmail)
-router.post('/register', registerValidationRules(),validate, register);
+router.post('/register', registerValidationRules(), validate, register);
 
 // Routes to change password of existing user
-router.post('/forgotPassword',isUser, forgetPassword)
-router.post('/changePassword',isUser, changePassword)
+router.post('/forgotPassword', checkAccess('USER'), forgetPassword)
+router.post('/changePassword', checkAccess('USER'), changePassword)
 
 
 // router.post('/register', registerValidationRules(), validate, upload.single('image'), register);

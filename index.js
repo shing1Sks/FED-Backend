@@ -52,6 +52,10 @@ app.use(jsonParseErrorHandler);
 // Error-handling middleware - should be at the end
 app.use(errorHandler);
 
+/*
+
+To be removed after tesing
+
 const { imageUpload, excelUpload } = require('./middleware/upload');
 const { addMembersThroughExcel } = require('./controllers/userController/userController');
 
@@ -77,6 +81,8 @@ app.delete('/deleteImage', async (req, res) => {
     const result = await deleteImage(image_url);
     res.json(result);
 });
+*/
+
 
 // Start server
 app.listen(PORT, () => {
