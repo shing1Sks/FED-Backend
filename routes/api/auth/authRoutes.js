@@ -2,8 +2,6 @@ const express = require('express');
 const router = express.Router();
 const { validate } = require('../../../middleware/validationMiddleware');
 const { registerValidationRules, loginValidationRules } = require('../../../middleware/validator/authValidator');
-
-require('dotenv').config();
 const passport = require('passport');
 
 // Import the auth controllers required
@@ -14,7 +12,6 @@ const { loginFailed } = require('../../../controllers/auth/google/loginFailed')
 
 // Import the middlewares required
 const { checkAccess } = require('../../../middleware/access/checkAccess');
-const { AccessTypes } = require('@prisma/client');
 
 // Define the authentication routes here
 router.get(

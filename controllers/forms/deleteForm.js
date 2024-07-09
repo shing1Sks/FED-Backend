@@ -2,6 +2,7 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const { ApiError } = require('../../utils/error/ApiError');
+const deleteImage = require('../../utils/image/deleteImage');
 
 //@description     Delete Form
 //@route           delete /api/form/deleteForm/:id
@@ -10,13 +11,18 @@ const deleteForm = async (req, res, next) => {
     try {
         const formId = req.params.id;
 
-        await prisma.form.delete({
+        const deletedForm = await prisma.form.delete({
             where: { id: formId },
         });
 
+        // Delete image from cloudinary
+        if(deletedForm && deletedForm.info && deletedForm.info.eventImg){
+            deleteImage(deletedForm.info.eventImg)
+        }
+
         if(req.body.deleteRegistations){
             await prisma.formRegistration.delete({
-                where : { formId : formId}
+                where : { formId : formId }
             })
         }
 

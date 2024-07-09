@@ -23,9 +23,10 @@ const editProfile = expressAsyncHandler(async (req, res, next) => {
             if (github) updatedExtra.github = github;
             if (linkedin) updatedExtra.linkedin = linkedin;
         }
+        rest.extra = updatedExtra
 
         // Update the user details
-        const updatedUser = await updateUser({email : req.user.email}, rest, {extra: updatedExtra})
+        const updatedUser = await updateUser({email : req.user.email})
 
         // Remove sensitive information from updatedUser
         delete updatedUser.password;

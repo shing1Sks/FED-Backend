@@ -38,9 +38,8 @@ const changePassword = expressAsyncHandler(async (req, res, next) => {
         }
 
         const hashedPassword = await bcrypt.hash(newPassword, 10);
-        const override = { password : hashedPassword };
         console.log("wrking ")
-        const user = await updateUser({email : email},{}, override)
+        const user = await updateUser({email : email},{password : hashedPassword})
         console.log("step 4");
         if(!user){
            return next( new ApiError(400, "error creating user"))

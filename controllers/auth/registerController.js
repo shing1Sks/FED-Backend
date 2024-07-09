@@ -18,7 +18,7 @@ const register = expressAsyncHandler(async (req, res, next) => {
 
     const { forms, otp, ...data } = req.body;
     const { email, password, name } = data;
-    
+
     // Delete extra data
     !includeExtraFlag && req.body.extra ? delete data.extra : null;
 
@@ -30,17 +30,17 @@ const register = expressAsyncHandler(async (req, res, next) => {
     try {
         // Check if the user is already registered 
         const existingUser = await prisma.user.findUnique({
-            where : {
-                email : email
+            where: {
+                email: email
             },
-            select : {
-                id : true
+            select: {
+                id: true
             }
         })
 
-        if(existingUser){
+        if (existingUser) {
             console.log("User already existing with this email", existingUser);
-            return next(new ApiError(400,"User already registerd with this email!!"))
+            return next(new ApiError(400, "User already registerd with this email!!"))
         }
         // Verify OTP -> Assuming that unique user constraint is handled in verifyEmailController
         const isValidOTP = await verifyOTP(email, otp, OtpPurpose.EMAIL_VERIFICATION);
@@ -48,7 +48,7 @@ const register = expressAsyncHandler(async (req, res, next) => {
         // Log the otp verification if on DEBUG mode
         if (process.env.DEBUG === "true") {
             console.log(isValidOTP);
-            if(isValidOTP.id){
+            if (isValidOTP.id) {
                 console.log(isValidOTP.id);
             }
         }
@@ -61,11 +61,14 @@ const register = expressAsyncHandler(async (req, res, next) => {
         // Hash the password
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Create or update the unique user
-        const newUser = await createUser(data, { password: hashedPassword, access: AccessTypes.USER }, sendMailFlag);
+        data.password = hashedPassword;
+        data.access = AccessTypes.USER;
 
-        if(!newUser){
-            return next(new ApiError(400,"Error creating user"))
+        // Create or update the unique user
+        const newUser = await createUser(data, sendMailFlag);
+
+        if (!newUser) {
+            return next(new ApiError(400, "Error creating user"))
         }
 
         // Generate the JWT Token
@@ -88,7 +91,7 @@ const register = expressAsyncHandler(async (req, res, next) => {
         // Delete the OTP in the background using a Promise
         new Promise((resolve, reject) => {
             prisma.otp.delete({
-                where: {id : isValidOTP.id }
+                where: { id: isValidOTP.id }
             }).then(() => {
                 resolve();
             }).catch(error => {

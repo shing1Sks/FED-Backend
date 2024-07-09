@@ -20,7 +20,7 @@ const addMember = expressAsyncHandler(async (req, res, next) => {
         }
 
         // Update the user details
-        const updatedUser = await createOrUpdateUser({ email: email }, rest, {});
+        const updatedUser = await createOrUpdateUser({ email: email }, rest);
 
         delete updatedUser.password; // Delete password from updatedUser object
 

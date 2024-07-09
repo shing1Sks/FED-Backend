@@ -6,8 +6,6 @@ const jsonParseErrorHandler = require('./middleware/jsonParseErrorHandler');
 const cors = require("cors");
 const errorHandler = require('./middleware/errorHandler');
 const logRequestBody = require('./middleware/requestLog');
-const { sendMail } = require('./utils/email/nodeMailer');
-const deleteImage = require('./utils/image/deleteImage');
 const passport = require("passport");
 const cookieSession = require("cookie-session");
 const passportStrategy = require("./config/passport");
@@ -52,37 +50,15 @@ app.use(jsonParseErrorHandler);
 // Error-handling middleware - should be at the end
 app.use(errorHandler);
 
+
 /*
-
-To be removed after tesing
-
-const { imageUpload, excelUpload } = require('./middleware/upload');
+const {excelUpload } = require('./middleware/upload');
 const { addMembersThroughExcel } = require('./controllers/userController/userController');
-
-// Route for uploading images
-app.post('/user/editImage', imageUpload.single('file'), (req, res) => {
-    res.status(200).json({ message: 'Image uploaded successfully', file: req.file });
-});
 
 // Route for uploading Excel files
 app.post('/user/addMemberExcel', excelUpload.single('file'), addMembersThroughExcel);
-    
-// Example routes for sending mail and deleting images
-app.post('/mail', (req, res) => {
-    const otp = 1234;
-    const content = `<p>OTP is ${otp}</p>`;
-    const { email, subject } = req.body;
-    sendMail(email, subject, content);
-    res.json("Email sent successfully!");
-});
 
-app.delete('/deleteImage', async (req, res) => {
-    const image_url = req.body.url;
-    const result = await deleteImage(image_url);
-    res.json(result);
-});
 */
-
 
 // Start server
 app.listen(PORT, () => {

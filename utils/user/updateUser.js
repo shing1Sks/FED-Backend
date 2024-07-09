@@ -2,27 +2,19 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const { ApiError } = require('../error/ApiError');
 
-const updateUser = async (key, data, override = {}) => {
+const updateUser = async (key, data) => {
     console.log("Updating existing user");
 
-    // Extract formIds from data and override if present
-    let newFormIds = [];
-    if (data.forms && Array.isArray(data.forms)) {
-        newFormIds = data.forms;
-        delete data.forms;
-    }
-    if (override.forms && Array.isArray(override.forms)) {
-        newFormIds = [...newFormIds, ...override.forms];
-        delete override.forms;
-    }
+    let newFormIds = null;
 
     // Build the update data object
     let updateData = {
-        ...data,
-        ...override,
+        ...data
     };
 
-    if (newFormIds.length > 0) {
+    if (data.forms) {
+        newFormIds = data.forms;
+        delete data.forms;
         updateData = {
             ...updateData,
             forms: {
