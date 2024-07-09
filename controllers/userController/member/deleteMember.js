@@ -27,7 +27,7 @@ const deleteMember = expressAsyncHandler(async (req, res, next) => {
         }
 
         // Update the user to set the member field to null
-        const updatedUser = await updateUser({ email: email }, {}, { access: AccessTypes.USER });
+        const updatedUser = await updateUser({ email: email }, { access: AccessTypes.USER });
 
         // Delete the password before sending the data
         delete updatedUser.password;
