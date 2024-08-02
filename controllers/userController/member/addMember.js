@@ -8,6 +8,7 @@ const createOrUpdateUser = require('../../../utils/user/createOrUpdateUser');
 //@route           PUT /api/user/addMember
 //@access          Admin
 const addMember = expressAsyncHandler(async (req, res, next) => {
+    console.log("add member controller called ")
     try {
         if (!req.body.email || !req.body.access) {
             return next(new ApiError(400, "Email and access is required"));
@@ -26,7 +27,7 @@ const addMember = expressAsyncHandler(async (req, res, next) => {
 
         console.log("Updated user:", updatedUser);
 
-        res.status(200).json({ message: 'User updated successfully', data: updatedUser });
+        res.status(200).json({ message: 'User updated successfully', user: updatedUser });
     } catch (error) {
         console.error('Error updating user:', error);
 
