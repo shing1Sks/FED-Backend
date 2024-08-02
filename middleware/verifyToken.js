@@ -7,8 +7,10 @@ const verifyToken = async (req, res, next) => {
     console.log("VerifyToken middleware is being called");
     
     // Extract the token from cookies or headers
-    let token = req.cookies.token;
+    console.log(req.cookies);
+    console.log(token);
     if(!token){
+        console.log("token is null")
         return next(new ApiError(401,"token is required"));
     }
 
@@ -41,6 +43,7 @@ const verifyToken = async (req, res, next) => {
         }
 
         req.user = user;
+        console.log("Token verified Successfully")
         next();
 
     } catch (err) {

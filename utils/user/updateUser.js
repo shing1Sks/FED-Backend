@@ -26,7 +26,7 @@ const updateUser = async (key, data) => {
     // Update the user
     const user = await prisma.user.update({
         where: key,
-        data: updateData, ...key,
+        data: updateData
     });
 
     console.log(`Updated user with ${JSON.stringify(key)} successfully!`);

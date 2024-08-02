@@ -11,6 +11,8 @@ const upload = multer();
 // Define your form routes here
 
 router.get('/getAllForms',checkAccess('USER'),formController.getAllForms)
+router.post('/contact',formController.contact);
+
 
 router.use(verifyToken)
 

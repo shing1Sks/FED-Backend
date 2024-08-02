@@ -35,8 +35,7 @@ const addForm = async (req, res, next) => {
             data: {
                 id: req.body.id,
                 info: info,
-                sections: sections,
-                // Add other fields as needed
+                sections: sections
             },
         });
 
