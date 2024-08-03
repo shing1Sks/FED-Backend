@@ -10,7 +10,7 @@ const upload = multer();
 // Add validations
 // Define your form routes here
 
-router.get('/getAllForms',checkAccess('USER'),formController.getAllForms)
+router.get('/getAllForms',formController.getAllForms)
 router.post('/contact',formController.contact);
 
 

@@ -5,6 +5,8 @@ const { verifyToken } = require('../../../middleware/verifyToken');
 const { checkAccess } = require('../../../middleware/access/checkAccess');
 const { imageUpload } = require('../../../middleware/upload');
 const { editProfileImage } = require('../../../controllers/image/editProfileImage');
+const { fetchProfileRules } = require('../../../middleware/validator/userValidator');
+const { validate } = require('../../../middleware/validationMiddleware');
 
 // Add validation, token verification, and isMemberOrAdmin
 router.get("/fetchAccessTypes", fetchAccessTypes)
@@ -15,6 +17,8 @@ router.get('/fetchAlumni', fetchAlumni)
 router.post("/addMember", addMember)
 
 router.use(verifyToken)
+
+router.post('/fetchProfile',fetchProfileRules(), validate, fetchUser)
 router.put('/editDetails', checkAccess('MEMBER'), editProfile)
 router.post('/editProfileImage',checkAccess('MEMBER'), imageUpload.single('image'), editProfileImage)
 
