@@ -16,6 +16,9 @@ const editProfileImage = expressAsyncHandler(async (req, res, next) => {
     }
 
     try {
+        console.log("user is ", req.user)
+
+        console.log("Existing image : ", req.user.img)
 
         console.log("uploading file -", req.file.path)
 
@@ -32,7 +35,6 @@ const editProfileImage = expressAsyncHandler(async (req, res, next) => {
             data: result,
             message: "Image uploaded successfully"
         });
-
         const user = updateUser({email : req.user.email},{img : result.secure_url})
     } catch (err) {
         return next(new ApiError(500, "Error while uploading image", err))
