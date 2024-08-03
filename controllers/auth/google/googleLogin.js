@@ -1,30 +1,66 @@
-const { PrismaClient } = require('@prisma/client');
+const { PrismaClient, AccessTypes } = require('@prisma/client');
 const prisma = new PrismaClient();
-const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const expressAsyncHandler = require('express-async-handler');
 const { ApiError } = require('../../../utils/error/ApiError');
+const { OAuth2Client } = require('google-auth-library');
+const createUser = require('../../../utils/user/createUser');
 
-//@description     Login a User
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+// Control Variables
+const sendMailFlag = false;
+
+//@description     Login or Register a User using Google
 //@route           POST /api/auth/googleLogin
-//@access          Registered User
+//@access          Public
 const googleLogin = expressAsyncHandler(async (req, res, next) => {
-    const { email } = req.body;
-    if(!email){
-        return next(new ApiError(400,"Missing fields : email"))
+    console.log("Entering google login")
+    const { tokenId } = req.body;
+    console.log(tokenId)
+
+    if (!tokenId) {
+        return next(new ApiError(400, "Missing fields: tokenId"));
     }
 
     try {
-        const user = await prisma.user.findUnique({
+        // Verify the ID token with Google
+        const ticket = await client.verifyIdToken({
+            idToken: tokenId,
+            audience: process.env.GOOGLE_CLIENT_ID,
+        });
+        const payload = ticket.getPayload();
+        const email = payload.email;
+        const name = payload.name;
+
+        if (!email) {
+            return next(new ApiError(404, 'User email not found'));
+        }
+
+        let user = await prisma.user.findUnique({
             where: { email }
         });
 
         if (!user) {
-            return next(new ApiError(404, 'User not found'));
+            // If user not found, register the user
+            const data = { email, name, access: AccessTypes.USER };
+
+            // Create or update the unique user
+            user = await createUser(data, sendMailFlag);
+
+            if (!user) {
+                return next(new ApiError(400, "Error creating user"));
+            }
+
+            console.log("User registered successfully:", user);
         }
 
         // Generate the JWT Token with only id, email, and login time
-        const token = jwt.sign({ id: user.id, email: user.email, loginTime: new Date().toISOString() }, process.env.JWT_SECRET, { expiresIn: '7h' });
+        const token = jwt.sign(
+            { id: user.id, email: user.email, loginTime: new Date().toISOString() },
+            process.env.JWT_SECRET,
+            { expiresIn: '7h' }
+        );
 
         // Send the token as an HTTP-only cookie
         res.cookie('token', token, {
@@ -35,11 +71,11 @@ const googleLogin = expressAsyncHandler(async (req, res, next) => {
             // maxAge: 3600000 // 1 hour in milliseconds
         });
 
-        //delete the password field before sending the data
-        delete user.password
+        // Delete the password field before sending the data
+        delete user.password;
 
-        res.status(200).json({ message: "LOGGED IN", user: user, token: token });
-        console.log(`Successfully LOGGEDIN trough google !! -> ${ user.email}`);
+        res.status(200).json({ message: user.id ? "LOGGED IN" : "User created successfully", user, token });
+        console.log(`Successfully ${user.id ? "LOGGED IN" : "registered"} through Google! -> ${user.email}`);
     } catch (error) {
         next(error);
     }
