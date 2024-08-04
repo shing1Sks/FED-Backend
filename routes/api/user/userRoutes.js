@@ -14,8 +14,6 @@ router.get("/fetchAccessTypes", fetchAccessTypes)
 router.get('/fetchTeam', fetchTeam)
 router.get('/fetchAlumni', fetchAlumni)
 
-router.post("/addMember", addMember)
-
 router.use(verifyToken)
 
 router.post('/fetchProfile',fetchProfileRules(), validate, fetchUser)
@@ -24,8 +22,9 @@ router.post('/editProfileImage',checkAccess('MEMBER'), imageUpload.single('image
 
 
 router.use(checkAccess('ADMIN'))
+router.post("/addMember", addMember)
 router.get("/getUser", fetchUser)
-router.delete("/deleteMember", deleteMember)
+router.delete("/deleteMember/:value", deleteMember)
 router.delete("/deleteUser", deleteUser)
 
 module.exports = router; 

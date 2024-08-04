@@ -3,6 +3,7 @@ const { body } = require('express-validator');
 
 const fetchProfileRules = () => [
     body('email')
+        .optional()
         .isEmail()
         .withMessage('Must be a valid email'),
     body()

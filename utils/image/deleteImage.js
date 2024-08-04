@@ -1,11 +1,11 @@
 const cloudinary = require('../../config/cloudinary');
 const ApiError = require('../../utils/error/ApiError');
 
-const deleteImage = async (folder = '',imageUrl) => {
-    console.log("Deleting image - ", imageUrl)
+const deleteImage = async (imageUrl, folder='') => {
+    console.log(`Deleting image - ${folder}/${imageUrl}`)
     try {
         let imageName = imageUrl.split('/').pop().split('.')[0];
-        imageName = folder + imageName
+        imageName = folder +"/"+imageName
         console.log(imageName);
         const result = await cloudinary.uploader.destroy(imageName);
         console.log(" Deleted Image ",result)

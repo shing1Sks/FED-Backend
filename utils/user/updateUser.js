@@ -12,12 +12,12 @@ const updateUser = async (key, data) => {
         ...data
     };
 
-    if (data.forms) {
-        newFormIds = data.forms;
-        delete data.forms;
+    if (data.regForm) {
+        newFormIds = data.regForm;
+        delete data.regForm;
         updateData = {
             ...updateData,
-            forms: {
+            regForm: {
                 push: newFormIds
             }
         };

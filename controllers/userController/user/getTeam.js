@@ -16,6 +16,7 @@ const fetchTeam = expressAsyncHandler(async (req, res, next) => {
                 }
             },
             select: {
+                id: true,
                 name: true,
                 access: true,
                 img:true,

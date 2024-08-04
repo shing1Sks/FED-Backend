@@ -63,13 +63,13 @@ const addRegistration = async (req, res, next) => {
             await prisma.user.upsert({
                 where: { email },
                 update: {
-                    forms: {
+                    regForm: {
                         push: formId
                     }
                 },
                 create: {
                     email,
-                    forms: [formId],
+                    regForm: [formId],
                     // Add other default fields for new user creation here
                     name: '', // Provide a default name if needed
                     password: '', // Provide a default password if needed

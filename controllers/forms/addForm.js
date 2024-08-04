@@ -3,7 +3,7 @@ const prisma = new PrismaClient();
 const { ApiError } = require('../../utils/error/ApiError');
 const uploadimage = require('../../utils/image/uploadImage');
 
-// @description     Add forms 
+// @description     Add regForm 
 // @route           POST /api/form/addForm
 // @access          Admins
 const addForm = async (req, res, next) => {

@@ -16,7 +16,7 @@ const includeExtraFlag = false;
 //@access          Public
 const register = expressAsyncHandler(async (req, res, next) => {
 
-    const { forms, otp, ...data } = req.body;
+    const { regForm, otp, ...data } = req.body;
     const { email, password, name } = data;
 
     // Delete extra data
