@@ -8,6 +8,7 @@ const deleteImage = require('../../utils/image/deleteImage');
 //@route           delete /api/form/deleteForm/:id
 //@access          Admins
 const deleteForm = async (req, res, next) => {
+    console.log("deleteForm");
     try {
         const formId = req.params.id;
 
