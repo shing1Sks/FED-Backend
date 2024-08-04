@@ -16,7 +16,7 @@ const includeExtraFlag = false;
 //@access          Public
 const googleRegister = expressAsyncHandler(async (req, res, next) => {
     console.log("Entering google register");
-    const { forms, ...data } = req.body;
+    const { regForm, ...data } = req.body;
     const { email, name } = data;
 
     // Delete extra data
