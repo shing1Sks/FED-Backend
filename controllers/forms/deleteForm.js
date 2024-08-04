@@ -18,9 +18,10 @@ const deleteForm = async (req, res, next) => {
 
         // Delete image from cloudinary
         if(deletedForm && deletedForm.info && deletedForm.info.eventImg){
-            deleteImage(deletedForm.info.eventImg)
+            deleteImage(deletedForm.info.eventImg, 'FormImages')
         }
 
+        // Delete all registrations
         if(req.body.deleteRegistations){
             await prisma.formRegistration.delete({
                 where : { formId : formId }
