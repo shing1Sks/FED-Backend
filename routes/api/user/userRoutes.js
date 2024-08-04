@@ -22,7 +22,7 @@ router.post('/editProfileImage',checkAccess('MEMBER'), imageUpload.single('image
 
 
 router.use(checkAccess('ADMIN'))
-router.post("/addMember", addMember)
+router.post("/addMember", imageUpload.single('image'),addMember)
 router.get("/getUser", fetchUser)
 router.delete("/deleteMember/:value", deleteMember)
 router.delete("/deleteUser", deleteUser)
