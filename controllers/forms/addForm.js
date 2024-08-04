@@ -20,6 +20,7 @@ const addForm = async (req, res, next) => {
         }
         else{
             console.log("image not found")
+            req.body.info.eventImg = null;
         }
 
         // Parse JSON strings from req.body.info and req.body.sections
