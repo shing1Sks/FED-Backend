@@ -31,7 +31,7 @@ const editProfileImage = expressAsyncHandler(async (req, res, next) => {
             }
             
         }
-
+        // Upload the new image to cloudinary
         const result = await uploadimage(req.file.path, 'MemberImages')
         console.log("result from cloudinary : ", result)
 

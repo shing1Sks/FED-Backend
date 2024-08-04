@@ -8,11 +8,10 @@ const uploadimage = require('../../utils/image/uploadImage');
 // @access          Admins
 const addForm = async (req, res, next) => {
     try {
-        console.log("Incoming request body:", req.body);
 
         // Handle file upload if applicable
         if (req.file) {
-            const result = await uploadimage(req.file.path);
+            const result = await uploadimage(req.file.path,"FormImages");
             console.log("Result from cloudinary:", result);
             if (result) {
                 req.body.info.eventImg = result.secure_url; // Assuming this modifies req.body.info
