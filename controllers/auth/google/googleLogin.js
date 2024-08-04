@@ -16,7 +16,7 @@ const sendMailFlag = false;
 //@access          Public
 const googleLogin = expressAsyncHandler(async (req, res, next) => {
     console.log("Entering google login")
-    const { tokenId } = req.body;
+    const { tokenId, email } = req.body;
     console.log(tokenId)
 
     if (!tokenId) {
@@ -24,15 +24,7 @@ const googleLogin = expressAsyncHandler(async (req, res, next) => {
     }
 
     try {
-        // Verify the ID token with Google
-        const ticket = await client.verifyIdToken({
-            idToken: tokenId,
-            audience: process.env.GOOGLE_CLIENT_ID,
-        });
-        const payload = ticket.getPayload();
-        const email = payload.email;
-        const name = payload.name;
-
+        
         if (!email) {
             return next(new ApiError(404, 'User email not found'));
         }

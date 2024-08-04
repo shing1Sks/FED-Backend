@@ -3,7 +3,7 @@ const prisma = new PrismaClient();
 const { ApiError } = require('../error/ApiError');
 
 const updateUser = async (key, data) => {
-    console.log("Updating existing user", key , data);
+    console.log("Updating existing user", key, data);
 
     let newFormIds = null;
 

@@ -16,15 +16,15 @@ const includeExtraFlag = false;
 //@access          Public
 const googleRegister = expressAsyncHandler(async (req, res, next) => {
     console.log("Entering google register");
-    const { regForm, ...data } = req.body;
+    const { id, ...data } = req.body;
     const { email, name } = data;
 
     // Delete extra data
     !includeExtraFlag && req.body.extra ? delete data.extra : null;
 
     // Validate request body
-    if (!email || !name ) {
-        return next(new ApiError(400, "Missing required fields: email, password, name, otp"));
+    if (!email || !name || !id) {
+        return next(new ApiError(400, "Missing required fields: email, name, id "));
     }
 
     try {
@@ -44,9 +44,9 @@ const googleRegister = expressAsyncHandler(async (req, res, next) => {
         }
         
         //  Password is hashed from the frontend
-        // // Hash the password
-        // const hashedPassword = await bcrypt.hash(password, 10);
-        // data.password = hashedPassword;
+        // Hash the password
+        const id = await bcrypt.hash(id, 10);
+        data.password = id;
 
         // override the access type of the new user to USER
         data.access = AccessTypes.USER;

@@ -11,11 +11,15 @@ const addForm = async (req, res, next) => {
 
         // Handle file upload if applicable
         if (req.file) {
+            console.log("uploding file from disk path : ", req.file.path)
             const result = await uploadimage(req.file.path,"FormImages");
             console.log("Result from cloudinary:", result);
             if (result) {
                 req.body.info.eventImg = result.secure_url; // Assuming this modifies req.body.info
             }
+        }
+        else{
+            console.log("image not found")
         }
 
         // Parse JSON strings from req.body.info and req.body.sections

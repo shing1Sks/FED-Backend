@@ -20,6 +20,18 @@ const addMember = expressAsyncHandler(async (req, res, next) => {
             console.log("req.access is ",rest.access);
         }
 
+        if(req.user.img){
+            try {
+                deleteImage(req.user.img, 'MemberImages')
+            } catch (error) {
+                console.log("Error deleting image", error);
+            }
+            
+        }
+        // Upload the new image to cloudinary
+        const result = await uploadimage(req.file.path, 'MemberImages')
+        console.log("result from cloudinary : ", result)
+
         // Update the user details
         const updatedUser = await createOrUpdateUser({ email: email }, rest);
 

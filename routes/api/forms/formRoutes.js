@@ -4,7 +4,8 @@ const formController = require('../../../controllers/forms/formController')
 const registrationController = require('../../../controllers/registration/registrationController');
 const {verifyToken} = require('../../../middleware/verifyToken');
 const { checkAccess } = require('../../../middleware/access/checkAccess');
-const multer = require('multer')
+const multer = require('multer');
+const { imageUpload } = require('../../../middleware/upload');
 const upload = multer();
 
 // Add validations
@@ -24,7 +25,7 @@ router.get('/registrationCount', checkAccess('MEMBER'), registrationController.g
 // Add middleware verifyToken, isAdmin
 router.use(checkAccess('ADMIN'))
 
-router.post('/addForm', upload.none(), formController.addForm )
+router.post('/addForm', imageUpload.single('image'), formController.addForm )
 router.delete('/deleteForm/:id', formController.deleteForm)
 router.put('/editForm', formController.editForm)
 
