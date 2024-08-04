@@ -43,6 +43,14 @@ app.use(cors("*"))
 //     next();
 // });
 
+// Radio Button
+// > Create Team
+// > Join Team
+// Team Name - 
+// Enter Team Code -
+// Enter Team Name
+// Enter Team Code
+
 app.use(cookieSession({
     name: "session",
     keys: ["somesessionkey"],
