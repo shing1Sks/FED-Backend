@@ -11,7 +11,7 @@ const updateUser = require('../../utils/user/updateUser');
 //@access          Public
 const changePassword = expressAsyncHandler(async (req, res, next) => {
     try {
-        console.log("Entering change password controller");
+        console.log(`${req.body.email} is trying to change the password !`);
         
         const { newPassword, confirmPassword, otp, email } = req.body;
 
@@ -42,7 +42,6 @@ const changePassword = expressAsyncHandler(async (req, res, next) => {
         }
 
         const hashedPassword = await bcrypt.hash(newPassword, 10);
-        console.log("wrking ")
         const user = await updateUser({email : email},{password : hashedPassword})
         console.log("step 4");
         if(!user){

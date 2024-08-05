@@ -35,7 +35,13 @@ const addMember = expressAsyncHandler(async (req, res, next) => {
          // Upload the new image to cloudinary
         const result = await uploadImage(req.file.path, 'MemberImages')
         console.log("result from cloudinary : ", result)
+        if(result){
+            rest.img = result.secure_url;
+        }
        }
+
+       // add teh uploaded image to the user img 
+        
 
         // Update the user details
         const updatedUser = await createOrUpdateUser({ email: email }, rest);
