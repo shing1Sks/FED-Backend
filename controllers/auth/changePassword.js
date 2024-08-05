@@ -34,8 +34,8 @@ const changePassword = expressAsyncHandler(async (req, res, next) => {
             console.log("invalid otp");
             return next(new ApiError(isValidOTP.status,"Invalid OTP"))
         }
-
-        const samePass = await bcrypt.compare(req.body.password, req.user.password);
+        const samePass = await bcrypt.compare(newPassword, req.user.password);
+        console.log(samePass);
 
         if(samePass){
             return next(new ApiError(400,"New password cannot be same as the old password ! Instead try login"));
