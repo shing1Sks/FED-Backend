@@ -1,34 +1,54 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const formController = require('../../../controllers/forms/formController')
-const registrationController = require('../../../controllers/registration/registrationController');
-const {verifyToken} = require('../../../middleware/verifyToken');
-const { checkAccess } = require('../../../middleware/access/checkAccess');
-const multer = require('multer');
-const { imageUpload } = require('../../../middleware/upload');
+const formController = require("../../../controllers/forms/formController");
+const registrationController = require("../../../controllers/registration/registrationController");
+const { verifyToken } = require("../../../middleware/verifyToken");
+const { checkAccess } = require("../../../middleware/access/checkAccess");
+const multer = require("multer");
+const { imageUpload } = require("../../../middleware/upload");
 const upload = multer();
 
 // Add validations
 // Define your form routes here
 
-router.get('/getAllForms',formController.getAllForms)
-router.post('/contact',formController.contact);
+router.get("/getAllForms", formController.getAllForms);
+router.post("/contact", formController.contact);
 
+router.use(verifyToken);
 
-router.use(verifyToken)
+router.use(
+  "/register",
+  checkAccess("ADMIN"),
+  registrationController.addRegistration
+);
 
-router.use('/register', checkAccess('ADMIN'), registrationController.addRegistration)
-
-
-router.get('/registrationCount', checkAccess('MEMBER'), registrationController.getRegistrationCount)
+router.get(
+  "/registrationCount",
+  checkAccess("MEMBER"),
+  registrationController.getRegistrationCount
+);
 
 // Add middleware verifyToken, isAdmin
-router.use(checkAccess('ADMIN'))
+router.use(checkAccess("ADMIN"));
 
-router.post('/addForm', imageUpload.single('image'), formController.addForm )
-router.delete('/deleteForm/:id', formController.deleteForm)
-router.put('/editForm', formController.editForm)
+router.post(
+  "/addForm",
+  imageUpload.fields([
+    { name: "eventImg", maxCount: 1 },
+    { name: "media", maxCount: 1 },
+  ]),
+  formController.addForm
+);
+router.delete("/deleteForm/:id", formController.deleteForm);
+router.put(
+  "/editForm/:id",
+  imageUpload.fields([
+    { name: "eventImg", maxCount: 1 },
+    { name: "media", maxCount: 1 },
+  ]),
+  formController.editForm
+);
 
-router.get('/download/:id', registrationController.downloadRegistration)
+router.get("/download/:id", registrationController.downloadRegistration);
 
-module.exports = router; 
+module.exports = router;

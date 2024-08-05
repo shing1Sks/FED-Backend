@@ -17,12 +17,12 @@ router.get('/fetchAlumni', fetchAlumni)
 router.use(verifyToken)
 
 router.post('/fetchProfile',fetchProfileRules(), validate, fetchUser)
-router.put('/editDetails', checkAccess('MEMBER'), editProfile)
+router.put('/editDetails', checkAccess('USER','MEMBER'), editProfile)
 router.post('/editProfileImage',checkAccess('MEMBER'), imageUpload.single('image'), editProfileImage)
 
 
 router.use(checkAccess('ADMIN'))
-router.post("/addMember", addMember)
+router.post("/addMember", imageUpload.single('image'),addMember)
 router.get("/getUser", fetchUser)
 router.delete("/deleteMember/:value", deleteMember)
 router.delete("/deleteUser", deleteUser)
