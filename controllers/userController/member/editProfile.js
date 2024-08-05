@@ -2,31 +2,39 @@ const { PrismaClient, AccessTypes } = require('@prisma/client');
 const prisma = new PrismaClient();
 const expressAsyncHandler = require('express-async-handler');
 const { ApiError } = require('../../../utils/error/ApiError');
-const deleteImage = require('../../../utils/image/deleteImage');
-const uploadImage = require('../../../utils/image/uploadImage');
-const fs = require('fs');
-const path = require('path');
 const updateUser = require('../../../utils/user/updateUser');
 
 // @description     Update User Details
 // @route           PUT /api/user/update
-// @access          Members
+// @access          Members and 5 times for USER
 const editProfile = expressAsyncHandler(async (req, res, next) => {
-    const { email, password, access, github, linkedin, extra, ...rest } = req.body;
+    const { editProfileCount, email, password, access, github, linkedin, extra, ...rest } = req.body;
 
     try {
 
-        let updatedExtra = req.user? req.user.extra: null;
-        if (extra) {
-            const { github, linkedin } = extra;
-            // Update member object with new values
-            if (github) updatedExtra.github = github;
-            if (linkedin) updatedExtra.linkedin = linkedin;
+        if (req.user.access === AccessTypes.USER && req.user.editProfileCount <= 0) {
+            return next(new ApiError(400, "Edit profile limit exceeded. Try contacting fedkiit@gmail.com"));
         }
-        rest.extra = updatedExtra
+        
 
+        if (req.user.access !== AccessTypes.USER) {
+            let updatedExtra = req.user ? req.user.extra : null;
+            if (extra) {
+                const { github, linkedin } = extra;
+                // Update member object with new values
+                if (github) updatedExtra.github = github;
+                if (linkedin) updatedExtra.linkedin = linkedin;
+            }
+            rest.extra = updatedExtra
+        }
+        else{
+            rest.editProfileCount = req.user.editProfileCount - 1;
+            if(rest && rest.extra){
+                delete rest.extra;
+            }   
+        }
         // Update the user details
-        const updatedUser = await updateUser({email : req.user.email}, rest)
+        const updatedUser = await updateUser({ email: req.user.email }, rest)
 
         // Remove sensitive information from updatedUser
         delete updatedUser.password;

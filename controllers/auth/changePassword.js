@@ -23,8 +23,6 @@ const changePassword = expressAsyncHandler(async (req, res, next) => {
         if (newPassword !== confirmPassword) {
             next(new ApiError(409,"Conflict : New Password and confirm Password did not match!!"))
         }
-        console.log("passing step 1");
-
 
         //verify OTP -> Assuming that unique user constaint is handeleted in verifyEmailController
         const isValidOTP = await verifyOtp( email, otp, OtpPurpose.FORGOT_PASSWORD, false)
@@ -37,6 +35,12 @@ const changePassword = expressAsyncHandler(async (req, res, next) => {
             return next(new ApiError(isValidOTP.status,"Invalid OTP"))
         }
 
+        const samePass = await bcrypt.compare(req.body.password, req.user.password);
+
+        if(samePass){
+            return next(new ApiError(400,"New password cannot be same as the old password ! Instead try login"));
+        }
+
         const hashedPassword = await bcrypt.hash(newPassword, 10);
         console.log("wrking ")
         const user = await updateUser({email : email},{password : hashedPassword})
@@ -44,7 +48,7 @@ const changePassword = expressAsyncHandler(async (req, res, next) => {
         if(!user){
            return next( new ApiError(400, "error creating user"))
         }
-        res.status(201).json({ message: "Password has been changed successfully !!" });
+        res.status(200).json({ status:"OK", message: "Password has been changed successfully !!" });
         console.log("Password changed successfully");
 
         // Delete the OTP in the background using a Promise
