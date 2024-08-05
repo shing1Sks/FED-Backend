@@ -9,32 +9,41 @@ const updateUser = require('../../../utils/user/updateUser');
 // @access          Members and 5 times for USER
 const editProfile = expressAsyncHandler(async (req, res, next) => {
     const { editProfileCount, email, password, access, github, linkedin, extra, ...rest } = req.body;
+    console.log(req.user.access);
+    console.log(rest);
+    console.log("entering edit profile", extra);
 
     try {
-
         if (req.user.access === AccessTypes.USER && req.user.editProfileCount <= 0) {
             return next(new ApiError(400, "Edit profile limit exceeded. Try contacting fedkiit@gmail.com"));
         }
-        
 
+        let updatedExtra = {};
+        
         if (req.user.access !== AccessTypes.USER) {
-            let updatedExtra = req.user ? req.user.extra : null;
+            // Check if req.user.extra is a proper JSON object
+            if (req.user && typeof req.user.extra === 'object' && req.user.extra !== null) {
+                updatedExtra = req.user.extra;
+            }
+
             if (extra) {
                 const { github, linkedin } = extra;
                 // Update member object with new values
                 if (github) updatedExtra.github = github;
                 if (linkedin) updatedExtra.linkedin = linkedin;
             }
-            rest.extra = updatedExtra
-        }
-        else{
+
+            console.log("modified extra", updatedExtra);
+            rest.extra = updatedExtra;
+        } else {
             rest.editProfileCount = req.user.editProfileCount - 1;
-            if(rest && rest.extra){
+            if (rest && rest.extra) {
                 delete rest.extra;
-            }   
+            }
         }
+
         // Update the user details
-        const updatedUser = await updateUser({ email: req.user.email }, rest)
+        const updatedUser = await updateUser({ email: req.user.email }, rest);
 
         // Remove sensitive information from updatedUser
         delete updatedUser.password;

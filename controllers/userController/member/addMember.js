@@ -39,9 +39,14 @@ const addMember = expressAsyncHandler(async (req, res, next) => {
             rest.img = result.secure_url;
         }
        }
-
-       // add teh uploaded image to the user img 
-        
+         
+        try {
+            
+            rest.extra = req.body.extra?JSON.parse(req.body.extra):{};
+        } catch (error) {
+            console.error('Error parsing JSON:', error);
+            return next(new ApiError(400, 'Invalid JSON format in request body', error));
+        }
 
         // Update the user details
         const updatedUser = await createOrUpdateUser({ email: email }, rest);
