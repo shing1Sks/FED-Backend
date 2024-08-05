@@ -1,7 +1,7 @@
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 const { ApiError } = require("../utils/error/ApiError");
-const { nanoid } = require("nanoid");
+// const { nanoid } = require('nanoid');
 const status = require("http-status");
 
 const getTeam = async (id, teamCode, data) => {
@@ -39,7 +39,7 @@ const createTeam = async (data) => {
   try {
     const newTeam = await prisma.team.create({
       data: {
-        teamId: `OM_${nanoid(6)}`,
+        teamId: `OM_`,
         user: { connect: { id: data.userId } },
         form: { connect: { id: data.formId } },
         teamName: data.teamName,
