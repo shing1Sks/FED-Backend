@@ -104,7 +104,6 @@ const editForm = async (req, res, next) => {
       isRegistrationClosed,
       isEventPast,
       sections,
-      sectionsToDelete,
     } = req.body;
 
     // Fetch current form data
@@ -132,9 +131,9 @@ const editForm = async (req, res, next) => {
       regDateAndTime,
       eventPriority,
       successMessage,
-      isPublic,
-      isRegistrationClosed,
-      isEventPast,
+      isPublic: isPublic === "true",
+      isRegistrationClosed: isRegistrationClosed === "true",
+      isEventPast: isEventPast === "true",
       receiverDetails: {
         ...currentForm.info.receiverDetails,
         upi,
@@ -178,37 +177,12 @@ const editForm = async (req, res, next) => {
       }
     }
 
-    // Update sections
-    let finalUpdatedSections = [...currentForm.sections];
-
-    if (sections) {
-      JSON.parse(sections).forEach((updatedSection) => {
-        const index = finalUpdatedSections.findIndex(
-          (sec) => sec.id === updatedSection.id
-        );
-        if (index !== -1) {
-          // Update existing section
-          finalUpdatedSections[index] = updatedSection;
-        } else {
-          // Add new section if not found
-          finalUpdatedSections.push(updatedSection);
-        }
-      });
-    }
-
-    // Remove sections marked for deletion
-    if (sectionsToDelete && sectionsToDelete.length > 0) {
-      finalUpdatedSections = finalUpdatedSections.filter(
-        (sec) => !sectionsToDelete.includes(sec.id)
-      );
-    }
-
     // Perform the update operation
     const updatedForm = await prisma.form.update({
       where: { id: formId },
       data: {
         info: updatedInfo,
-        sections: { set: finalUpdatedSections },
+        sections: { set: JSON.parse(sections) },
       },
     });
 
