@@ -74,7 +74,7 @@ const addForm = async (req, res, next) => {
       const result = await uploadimage(qrmediaFile.path, "QRMediaImages");
       info.receiverDetails.media = result ? result.secure_url : null;
     } else {
-      ApiError(status.BAD_REQUEST, "QR media image not found");
+      new ApiError(status.BAD_REQUEST, "QR media image not found");
     }
 
     const newForm = await prisma.form.create({
