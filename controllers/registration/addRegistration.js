@@ -1,98 +1,158 @@
-const { PrismaClient } = require('@prisma/client');
+const { PrismaClient, Prisma, AccessTypes } = require("@prisma/client");
 const prisma = new PrismaClient();
-const { ApiError } = require('../../utils/error/ApiError');
+const { ApiError } = require("../../utils/error/ApiError");
+const expressAsyncHandler = require("express-async-handler");
 
-// @description     Add registration for a form
-// @route           POST /api/form/register
-// @access          Public (or as per your authentication requirements)
-const addRegistration = async (req, res, next) => {
+const addRegistration = expressAsyncHandler(async (req, res, next) => {
+    console.log('add reg - ',req.body);
+    const { _id, name, field_id, field_name, field_value } = req.body;
+
+    if (!_id || !field_id || !field_name || !field_value ) {
+        return next(new ApiError(400, "All fields are required"));
+    }
+
     try {
-        const { formId, value } = req.body;
-
-        if (!formId || !value) {
-            return next(new ApiError(400, "Form ID and form data are required"));
-        }
-
         // Check if the form exists
-        const formExists = await prisma.form.findUnique({
-            where: { id: formId }
+        const form = await prisma.form.findUnique({
+            where: { id: _id },
+            select: { info: true, userForms: true },
         });
 
-        if (!formExists) {
-            return next(new ApiError(404, 'Form not found'));
+        if (!form) {
+            return next(new ApiError(404, "Form not found"));
         }
 
-        // const regUserEmails = getUniqueEmails(formData);
-        // console.log(regUserEmails);
+        if(form.isRegistrationClosed){
+            return next(new ApiError(400, "Registration Closed for this event!!"));
+        }
 
-        const registrationExists = await prisma.formRegistration.findFirst({
+        if(form.info.isEventPast){
+            return next(new ApiError(400, "Registering to a past event is not allowed"));
+        }
+
+        if(form.info.isPublic && req.user.access != AccessTypes.ADMIN){
+            return next(new ApiError(401, "Registring to a private form is not allowed"));
+        }
+
+
+        // Extract form info
+        const { info } = form;
+        const maxReg = info.maxReg;
+        const relatedEvent = info.relatedEvent;
+
+        // Check if user is already registered for the form
+        const isAlreadyRegistered = await prisma.formRegistration.findFirst({
             where: {
-                OR: [
-                    { userId: req.user.id },
-                    // {
-                    //     regUserEmails: {
-                    //         hasSome: regUserEmails
-                    //     }
-                    // }
-                ],
-                AND: {
-                    formId: formId
+                formId: _id,
+                userId: user.id,
+                regTeamMemEmails: { has: user.email },
+            },
+        });
+
+        if (isAlreadyRegistered) {
+            return next(new ApiError(400, "User is already registered for this form"));
+        }
+
+        // Check if the user has already registered in the related event (if applicable)
+        if (relatedEvent) {
+            const relatedForm = await prisma.form.findUnique({
+                where: { id: relatedEvent }
+            });
+
+            if (relatedForm) {
+                const userAlreadyRegisteredInRelatedForm = relatedForm.userForms.some(registration => 
+                    registration.userId === user.id
+                );
+
+                if (!userAlreadyRegisteredInRelatedForm) {
+                    return next(new ApiError(400, "User must be registered in the related event"));
                 }
             }
-        });
-
-        if (registrationExists) {
-            return next(new ApiError(400, 'User is already registered in this event'));
         }
 
-        const newRegistration = await prisma.formRegistration.create({
-            data: {
-                user: { connect: { id: req.user.id } },
-                form: { connect: { id: formId } },
-                value: value,
-                // regUserEmails: regUserEmails
+        // Check max registrations
+        const currentRegistrations = await prisma.formRegistration.count({
+            where: { formId: _id },
+        });[[]]
+
+        if (currentRegistrations >= maxReg) {
+            return next(new ApiError(400, "Maximum registration limit reached"));
+        }
+
+        let teamCode = null;
+        const regTeamMemEmails = [];
+        const values = [];
+
+        if (field_value[field_name.indexOf("Team Option")] === "Create Team") {
+            teamCode = generateTeamCode(relatedForm.info.eventTitle,form.info.eventTitle); // Generate a new team code
+            regTeamMemEmails.push(user.email); // Add the user to the team
+
+            // Push remaining data to values
+            field_id.forEach((id, index) => {
+                values.push({
+                    fieldId: id,
+                    fieldName: field_name[index],
+                    fieldValue: field_value[index],
+                });
+            });
+
+        } else if (field_value[field_name.indexOf("Team Option")] === "Join Team") {
+            const teamCodeField = field_value[field_name.indexOf("Team Code")];
+
+            // Check if the team code exists and is valid
+            const teamExists = await prisma.formRegistration.findFirst({
+                where: { teamCode: teamCodeField },
+            });
+
+            if (!teamExists) {
+                return next(new ApiError(400, "Invalid team code"));
             }
+
+            // Add the user to the team's registration list
+            regTeamMemEmails.push(user.email);
+
+            // Push remaining data to values
+            field_id.forEach((id, index) => {
+                values.push({
+                    fieldId: id,
+                    fieldName: field_name[index],
+                    fieldValue: field_value[index],
+                });
+            });
+        } else {
+            return next(new ApiError(400, "Invalid team option"));
+        }
+
+        // Create or update registration
+        const registration = await prisma.formRegistration.create({
+            data: {
+                formId: _id,
+                userId: user.id,
+                value: values,
+                regTeamMemEmails,
+                teamCode,
+            },
         });
 
-        // Upsert users based on email
-        // for (const email of regUserEmails) {
-        //     await prisma.user.upsert({
-        //         where: { email },
-        //         update: {
-        //             regForm: {
-        //                 push: formId
-        //             }
-        //         },
-        //         create: {
-        //             email,
-        //             regForm: [formId],
-        //             // Add other default fields for new user creation here
-        //             name: '', // Provide a default name if needed
-        //             password: '', // Provide a default password if needed
-        //             // Other necessary fields
-        //         }
-        //     });
-        // }
-
-        res.status(201).json({
-            success: true,
-            message: 'Registration added successfully',
-            data: newRegistration,
-        });
+        res.json({ message: "Registration successful", registration });
     } catch (error) {
-        console.error('Error in adding registration:', error);
-        return next(new ApiError(500, 'Error in adding registration', error));
+        console.error("Error during registration:", error);
+        next(new ApiError(500, "Error during registration process"));
     }
+});
+
+const generateTeamCode = async (relatedEventName, currentFormName) => {
+    const relatedEventCode = relatedEventName.slice(0, 2).toUpperCase();
+    const currentFormCode = currentFormName.slice(0, 2).toUpperCase();
+
+    // Get the count of teams already created for the current form to generate a unique number
+    const existingTeamsCount = await prisma.formRegistration.count({
+        where: { teamCode: { startsWith: relatedEventCode + currentFormCode } },
+    });
+
+    const uniqueNumber = existingTeamsCount.toString().padStart(3, '0');
+
+    return `${relatedEventCode}${currentFormCode}${uniqueNumber}`;
 };
 
-function getUniqueEmails(data) {
-    // const emails = new Set();
-    // data.forEach(section => {
-    //     if (section.email) {
-    //         emails.add(section.email);
-    //     }
-    // });
-    // return Array.from(emails);
-}
-
-module.exports = { addRegistration };
+module.exports = {addRegistration}

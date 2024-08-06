@@ -1,15 +1,17 @@
-// Define your many-to-many relationship schema
 model formRegistration {
-  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  id                String   @id @default(auto()) @map("_id") @db.ObjectId
 
-  user          user     @relation(fields: [userId], references: [id])
-  userId        String   @map("userId") @db.ObjectId
+  user              user     @relation(fields: [userId], references: [id])
+  userId            String   @map("userId") @db.ObjectId
 
-  form          form     @relation(fields: [formId], references: [id])
-  formId        String   @map("formId") @db.ObjectId
+  form              form     @relation(fields: [formId], references: [id])
+  formId            String   @map("formId") @db.ObjectId
 
-  value         Json
-  regUserEmails String[]
+  value             Json[]
+  regTeamMemEmails  String[]
 
-  @@map("form_registration") // Name of the collection/table
+  teamName          String
+  teamCode          String
+
+  @@map("form_registration")
 }

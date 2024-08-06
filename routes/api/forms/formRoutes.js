@@ -17,7 +17,7 @@ router.post('/contact',formController.contact);
 
 router.use(verifyToken)
 
-router.use('/register', checkAccess('USER'), registrationController.addRegistration)
+router.use('/register', checkAccess('USER'), imageUpload.single('image'),registrationController.addRegistration)
 
 
 router.get('/registrationCount', checkAccess('MEMBER'), registrationController.getRegistrationCount)
