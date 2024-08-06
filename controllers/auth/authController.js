@@ -15,5 +15,6 @@ module.exports = {
     changePassword,
     verifyEmail,
     googleAuth,
-    googleLogin
+    // googleLogin,
+    googleAuth
 };
