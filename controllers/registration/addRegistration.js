@@ -14,20 +14,19 @@ const addRegistration = expressAsyncHandler(async (req, res, next) => {
     try {
         // Check if the form exists
         const form = await prisma.form.findUnique({
-            where: { id: _id },
-            select: { info: true, userForms: true },
+            where: { id: _id }
         });
 
         if (!form) {
             return next(new ApiError(404, "Form not found"));
         }
 
-        if(form.isRegistrationClosed){
+        if(form.info.isRegistrationClosed){
             return next(new ApiError(400, "Registration Closed for this event!!"));
         }
 
         if(form.info.isEventPast){
-            return next(new ApiError(400, "Registering to a past event is not allowed"));
+            return next(new ApiError(400, "Cannot Register to a past event"));
         }
 
         if(form.info.isPublic && req.user.access != AccessTypes.ADMIN){

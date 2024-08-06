@@ -5,7 +5,7 @@ const { registerValidationRules, loginValidationRules } = require('../../../midd
 const passport = require('passport');
 
 // Import the auth controllers required
-const { login, verifyEmail, register, forgetPassword, changePassword, logout, googleLogin, googleRegister} = require('../../../controllers/auth/authController');
+const { login, verifyEmail, register, forgetPassword, changePassword, logout, googleAuth, googleLogin} = require('../../../controllers/auth/authController');
 // const {googleCallback} = require('../../../controllers/auth/google/googleCallback')
 const { loginSuccess } = require('../../../controllers/auth/google/loginSuccess')
 const { loginFailed } = require('../../../controllers/auth/google/loginFailed')
@@ -26,8 +26,8 @@ router.get('/login/failed', loginFailed);
 
 // Routes to login for existing user
 router.post('/login', loginValidationRules(), validate, checkAccess('USER', 'MEMBER'), login);
+// router.post('/googleAuth', googleAuth);
 router.post('/googleLogin', googleLogin);
-router.post('/googleRegister', googleRegister);
 
 
 // Routes to register a new user
