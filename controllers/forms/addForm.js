@@ -1,64 +1,114 @@
-const { PrismaClient } = require('@prisma/client');
+const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
-const { ApiError } = require('../../utils/error/ApiError');
-const uploadimage = require('../../utils/image/uploadImage');
+const { ApiError } = require("../../utils/error/ApiError");
+const uploadimage = require("../../utils/image/uploadImage");
+const status = require("http-status");
 
-// @description     Add regForm 
+// @description     Add regForm
 // @route           POST /api/form/addForm
 // @access          Admins
+
 const addForm = async (req, res, next) => {
-    try {
+  try {
+    const {
+      _id,
+      eventTitle,
+      eventdescription,
+      eventDate,
+      eventType,
+      upi,
+      eventAmount,
+      eventMaxReg,
+      relatedEvent,
+      participationType,
+      maxTeamSize,
+      minTeamSize,
+      regDateAndTime,
+      eventPriority,
+      successMessage,
+      isPublic,
+      isRegistrationClosed,
+      isEventPast,
+    } = req.body;
 
-        // Handle file upload if applicable
-        if (req.file) {
-            console.log("uploding file from disk path : ", req.file.path)
-            const result = await uploadimage(req.file.path,"FormImages");
-            console.log("Result from cloudinary:", result);
-            if (result) {
-                req.body.info.eventImg = result.secure_url; // Assuming this modifies req.body.info
-            }
-        }
-        else{
-            console.log("image not found")
-            req.body.info.eventImg = null;
-        }
+    const info = {
+      _id,
+      eventTitle,
+      eventdescription,
+      eventDate,
+      eventType,
+      eventAmount,
+      eventMaxReg,
+      relatedEvent,
+      participationType,
+      maxTeamSize,
+      minTeamSize,
+      regDateAndTime,
+      eventPriority,
+      successMessage,
+      isPublic,
+      isRegistrationClosed,
+      isEventPast,
+      receiverDetails: { upi: upi, media: null },
+    };
 
-        // Parse JSON strings from req.body.info and req.body.sections
-        let info;
-        let sections;
-        try {
-            info = JSON.parse(req.body.info);
-            sections = JSON.parse(req.body.sections);
-        } catch (error) {
-            console.error('Error parsing JSON:', error);
-            return next(new ApiError(400, 'Invalid JSON format in request body', error));
-        }
+    const eventImgFile = req.files
+      ? req.files?.eventImg
+        ? req.files.eventImg[0]
+        : null
+      : null;
+    const qrmediaFile = req.files
+      ? req.files?.media
+        ? req.files.media[0]
+        : null
+      : null;
 
-        // Create new form
-        const newForm = await prisma.form.create({
-            data: {
-                id: req.body.id,
-                info: info,
-                sections: sections
-            },
-        });
-
-        res.status(201).json({
-            success: true,
-            message: 'Form created successfully',
-            form: newForm,
-        });
-    } catch (error) {
-        console.error('Error in creating form:', error);
-
-        // Handle specific errors or throw a generic error
-        if (error.code === 'P2002') {
-            return next(new ApiError(400, 'Duplicate form ID. Form ID must be unique', error));
-        }
-
-        // For other unexpected errors
-        return next(new ApiError(500, 'Error in creating form', error));
+    if (eventImgFile) {
+      const result = await uploadimage(eventImgFile.path, "FormImages");
+      info.eventImg = result ? result.secure_url : null;
+    } else {
+      ApiError(status.BAD_REQUEST, "Event image not found");
     }
+
+    if (qrmediaFile) {
+      const result = await uploadimage(qrmediaFile.path, "QRMediaImages");
+      info.receiverDetails.media = result ? result.secure_url : null;
+    } else {
+      ApiError(status.BAD_REQUEST, "QR media image not found");
+    }
+
+    const newForm = await prisma.form.create({
+      data: {
+        id: req.body.id,
+        info: info,
+        sections: JSON.parse(req.body.sections || "[]"),
+      },
+    });
+
+    res.status(status.OK).json({
+      success: true,
+      message: "Form created successfully",
+      form: newForm,
+    });
+  } catch (error) {
+    console.error("Error in creating form:", error);
+    if (error.code === "P2002") {
+      return next(
+        new ApiError(
+          status.INTERNAL_SERVER_ERROR,
+          "Duplicate form ID. Form ID must be unique",
+          error
+        )
+      );
+    }
+    return next(
+      new ApiError(
+        status.INTERNAL_SERVER_ERROR,
+        "Error in creating form",
+        error
+      )
+    );
+  }
 };
 
 module.exports = { addForm };
