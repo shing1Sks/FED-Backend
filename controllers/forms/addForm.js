@@ -11,7 +11,6 @@ const status = require("http-status");
 const addForm = async (req, res, next) => {
   try {
     const {
-      _id,
       eventTitle,
       eventdescription,
       eventDate,
@@ -32,7 +31,6 @@ const addForm = async (req, res, next) => {
     } = req.body;
 
     const info = {
-      _id,
       eventTitle,
       eventdescription,
       eventDate,
@@ -46,9 +44,9 @@ const addForm = async (req, res, next) => {
       regDateAndTime,
       eventPriority,
       successMessage,
-      isPublic,
-      isRegistrationClosed,
-      isEventPast,
+      isPublic: Boolean(isPublic) || false,
+      isRegistrationClosed: Boolean(isRegistrationClosed) || false,
+      isEventPast: Boolean(isEventPast) || false,
       receiverDetails: { upi: upi, media: null },
     };
 
@@ -67,7 +65,7 @@ const addForm = async (req, res, next) => {
       const result = await uploadimage(eventImgFile.path, "FormImages");
       info.eventImg = result ? result.secure_url : null;
     } else {
-      ApiError(status.BAD_REQUEST, "Event image not found");
+      new ApiError(status.BAD_REQUEST, "Event image not found");
     }
 
     if (qrmediaFile) {
@@ -79,7 +77,6 @@ const addForm = async (req, res, next) => {
 
     const newForm = await prisma.form.create({
       data: {
-        id: req.body.id,
         info: info,
         sections: JSON.parse(req.body.sections || "[]"),
       },
