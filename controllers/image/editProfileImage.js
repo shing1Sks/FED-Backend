@@ -1,6 +1,6 @@
 const upload = require('../../middleware/upload');
 const expressAsyncHandler = require('express-async-handler');
-const {ApiError} = require('../../utils/error/ApiError');
+const { ApiError } = require('../../utils/error/ApiError');
 const uploadimage = require('../../utils/image/uploadImage')
 
 const deleteImage = require('../../utils/image/deleteImage');
@@ -23,13 +23,20 @@ const editProfileImage = expressAsyncHandler(async (req, res, next) => {
         console.log("uploading file -", req.file.path)
 
         //delete the existing image
-        if(req.user.img){
+        if (req.user.img) {
             try {
-                deleteImage(req.user.img, 'MemberImages')
+
+                const result = await deleteImage(req.user.img, 'MemberImages')
+                if(!result){
+                    console.log("Could not delete image : ", req.uer.img);
+                }
+                else{
+                    console.log("Image deleted successfully ")
+                }
             } catch (error) {
                 console.log("Error deleting image", error);
             }
-            
+
         }
         // Upload the new image to cloudinary
         const result = await uploadimage(req.file.path, 'MemberImages')
@@ -40,7 +47,7 @@ const editProfileImage = expressAsyncHandler(async (req, res, next) => {
             url: result.secure_url,
             message: "Image uploaded successfully"
         });
-        const user = updateUser({email : req.user.email},{img : result.secure_url})
+        const user = updateUser({ email: req.user.email }, { img: result.secure_url })
     } catch (err) {
         return next(new ApiError(500, "Error while uploading image", err))
     }

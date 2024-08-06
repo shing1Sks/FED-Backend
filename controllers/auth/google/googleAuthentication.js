@@ -16,6 +16,7 @@ const sendMailFlag = true;
 const googleAuth = expressAsyncHandler(async (req, res, next) => {
     console.log("Entering google login");
     const { access_token } = req.body;
+    let statusCode=200;
 
     if (!access_token) {
         return next(new ApiError(400, "Missing fields: access_token"));
@@ -27,13 +28,13 @@ const googleAuth = expressAsyncHandler(async (req, res, next) => {
             `https://www.googleapis.com/oauth2/v3/userinfo?access_token=${access_token}`
         );
 
-        console.log("Google response:", googleResponse.data);
+        // console.log("Google response:", googleResponse.data);
 
         const { email, given_name, family_name, picture, hd } = googleResponse.data;
 
 
         let user = await prisma.user.findUnique({
-            where: { email:email }
+            where: { email: email }
         });
 
         if (!user) {
@@ -44,9 +45,51 @@ const googleAuth = expressAsyncHandler(async (req, res, next) => {
                 img: picture,
             };
 
-            if (hd === 'kiit.ac.in') {
-                data = { ...data, school: "Kalinga Institute Of Industrial Technology", rollNumber: email.split('@')[0] };
+            function getOrdinalYear(year) {
+                switch (year) {
+                    case 1:
+                        return '1st year';
+                    case 2:
+                        return '2nd year';
+                    case 3:
+                        return '3rd year';
+                    case 4:
+                        return '4th year';
+                    case 5:
+                        return '5th year';
+                    default:
+                        return `Passout`; // This case should not occur since max is 4th
+                }
             }
+
+            if (hd === 'kiit.ac.in') {
+                const rollNumber = email.split('@')[0];
+                const startYear = parseInt(`20${rollNumber.substring(0, 2)}`, 10);
+                const currentYear = new Date().getFullYear();
+                const numericYearOfStudy = Math.min(5, currentYear - startYear + 1); // Max 4 years
+                const year = getOrdinalYear(numericYearOfStudy);
+                const schoolCode = rollNumber.substring(2, 4);
+
+                let schoolName;
+                switch (schoolCode) {
+                    case '05':
+                        schoolName = 'Computer Science and Engineering';
+                        break;
+                    // Add more cases for other school
+                    default:
+                        schoolName = null;
+                        break;
+                }
+
+                data = {
+                    ...data,
+                    college: "Kalinga Institute of Industrial Technology",
+                    rollNumber,
+                    year,
+                    school: schoolName
+                };
+            }
+
 
             console.log("Data:", data);
 
@@ -55,6 +98,7 @@ const googleAuth = expressAsyncHandler(async (req, res, next) => {
             if (!user) {
                 return next(new ApiError(400, "Error creating user"));
             }
+            statusCode = 201;
 
             console.log("User registered successfully:", user);
         }
@@ -77,7 +121,7 @@ const googleAuth = expressAsyncHandler(async (req, res, next) => {
         delete user.password;
 
         // Respond to the client
-        res.status(200).json({
+        res.status(statusCode).json({
             message: "LOGGED IN",
             user,
             token

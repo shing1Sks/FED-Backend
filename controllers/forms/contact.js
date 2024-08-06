@@ -22,7 +22,7 @@ const contact = expressAsyncHandler(async (req, res, next) => {
         const template = loadTemplate("contactUs", { name:name, email:email, message:message });
 
         // Send the email
-        await sendMail("prakashpramanickjsr1717+abc@gmail.com", "A response has arrived on Contact Us", template);
+        await sendMail("fedkiit+contact@gmail.com", "A response has arrived on Contact Us", template);
 
         // Send a success response
         res.status(200).json({

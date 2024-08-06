@@ -49,7 +49,7 @@ const loginSuccess = expressAsyncHandler(async(req, res) => {
                         secure: true,
                     });
                     console.log(token)
-                    res.status(200).json("Logged in successfully!")
+                    res.status(200).json({message : "Logged in successfully!", user : user})
                 }
             } else{
                 res.status(403).json({error: true, message: "Not Authorized"})

@@ -3,8 +3,12 @@ const { ApiError } = require('../error/ApiError');
 
 const deleteImage = async (imageUrl, folder = '') => {
     try {
+
         if (typeof imageUrl !== 'string' || typeof folder !== 'string') {
             throw new ApiError(400, 'imageUrl and folder must be strings');
+        }
+        if(!imageUrl.startsWith('https://res.cloudinary.com/')){
+            return null;
         }
 
         console.log(`Deleting image - ${folder}/${imageUrl}`);
