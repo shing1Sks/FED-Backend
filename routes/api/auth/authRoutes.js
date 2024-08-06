@@ -27,7 +27,7 @@ router.get('/login/failed', loginFailed);
 // Routes to login for existing user
 router.post('/login', loginValidationRules(), validate, checkAccess('USER', 'MEMBER'), login);
 // router.post('/googleAuth', googleAuth);
-router.post('/googleLogin', googleLogin);
+router.post('/googleAuth', googleAuth);
 
 
 // Routes to register a new user
