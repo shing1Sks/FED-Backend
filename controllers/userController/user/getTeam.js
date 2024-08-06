@@ -4,7 +4,7 @@ const expressAsyncHandler = require('express-async-handler');
 const { ApiError } = require('../../../utils/error/ApiError');
 
 //@description     Fetch Teams
-//@route           GET /api/user/team
+//@route           GET /api/user/fetchTeam
 //@access          Public
 const fetchTeam = expressAsyncHandler(async (req, res, next) => {
     try {
