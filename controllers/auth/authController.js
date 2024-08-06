@@ -4,8 +4,8 @@ const { logout } = require('./logoutController');
 const { forgetPassword } = require('./forgetPassword');
 const { changePassword } = require('./changePassword');
 const { verifyEmail } = require('./verifyEmailController');
+const { googleAuth } = require('./google/googleAuthentication');
 const { googleLogin } = require('./google/googleLogin');
-const { googleRegister } = require('./google/googleRegister');
 
 module.exports = {
     register,
@@ -14,6 +14,6 @@ module.exports = {
     forgetPassword,
     changePassword,
     verifyEmail,
-    googleLogin,
-    googleRegister
+    googleAuth,
+    googleLogin
 };

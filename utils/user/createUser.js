@@ -6,6 +6,7 @@ const { sendMail } = require('../email/nodeMailer');
 const loadTemplate = require('../email/loadTemplate');
 
 const createUser = async (data, sendMailFlag = false) => {
+    data.editProfileCount = 5;
     console.log(data, sendMailFlag);
     console.log("Creating new user");
 
