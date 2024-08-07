@@ -11,7 +11,6 @@ const fetchTeam = expressAsyncHandler(async (req, res, next) => {
         // Fetch users with specific access types
         const users = await prisma.user.findMany({
             where: {
-                name: { not: null },
                 access: {
                     notIn: [AccessTypes.USER, AccessTypes.ADMIN]
                 }

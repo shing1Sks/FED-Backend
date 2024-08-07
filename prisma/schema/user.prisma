@@ -23,7 +23,7 @@ enum AccessTypes {
 model user {
   id               String             @id @default(auto()) @map("_id") @db.ObjectId
   email            String             @unique
-  name             String?
+  name             String?            
   access           AccessTypes        @default(USER)
   year             String?
   img              String?
@@ -33,7 +33,7 @@ model user {
   school           String?
   college          String?
   contactNo        String?
-  whatsappNo       String?
+  whatsappNo       String?  
   extra            Json?
   regForm          String[]           @default([])
   editProfileCount Int?               
