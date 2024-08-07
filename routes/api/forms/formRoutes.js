@@ -1,4 +1,4 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
 const formController = require('../../../controllers/forms/formController')
 const registrationController = require('../../../controllers/registration/registrationController');
@@ -15,15 +15,19 @@ router.get('/getAllForms', formController.getAllForms)
 router.post('/contact', formController.contact);
 
 
-router.use(verifyToken)
+router.use(verifyToken);
 
 router.use('/register', checkAccess('USER'), imageUpload.single('image'), registrationController.addRegistration)
 
 
-router.get('/registrationCount', checkAccess('MEMBER'), registrationController.getRegistrationCount)
+router.get(
+  "/registrationCount",
+  checkAccess("MEMBER"),
+  registrationController.getRegistrationCount
+);
 
 // Add middleware verifyToken, isAdmin
-router.use(checkAccess('ADMIN'))
+router.use(checkAccess("ADMIN"));
 
 router.post(
     "/addForm",
