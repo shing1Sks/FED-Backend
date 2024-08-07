@@ -2,8 +2,9 @@ model registrationTracker {
   id                String   @id @default(auto()) @map("_id") @db.ObjectId
 
   form              form     @relation(fields: [formId], references: [id])
-  formId            String   @map("formId") @db.ObjectId
+  formId            String   @map("formId") @db.ObjectId @unique
 
+  regTeamNames      String[]
   regUserEmails     String[]
 
   @@map("registration_tracker")
