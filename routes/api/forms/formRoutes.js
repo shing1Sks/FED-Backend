@@ -30,6 +30,11 @@ router.get(
   registrationController.getRegistrationCount
 );
 
+router.get(
+    "/formAnalytics/:id",
+    formController.analytics
+)
+
 // Add middleware verifyToken, isAdmin
 router.use(checkAccess("ADMIN"));
 

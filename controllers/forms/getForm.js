@@ -7,27 +7,31 @@ const { ApiError } = require('../../utils/error/ApiError');
 //@access          PUBLIC 
 const getAllForms = async (req, res, next) => {
     try {
-        console.log("get all forms ",req.query.id);
-        const forms = await prisma.form.findMany({
-            where: {
-                id: req.query.id
-            }
-        });
+        let forms = null;
+        if (req.query.id) {
+            forms = await prisma.form.findUnique({
+                where: {
+                    id: req.query.id
+                }
+            });
+        }
+        else{
+            forms = await prisma.form.findMany({});
+        }
 
+        const filteredForms = forms.reduce((acc, form) => {
+            // Filter out forms where isPublic is false
+            if (!form.info.isPublic) return acc;
 
-        // const filteredForms = forms.reduce((acc, form) => {
-        //     // Filter out forms where isPublic is false
-        //     if (!form.info.isPublic) return acc;
+            // Remove sections from forms where isEventPast is true
+            form.sections = !(form.info.isRegistrationClosed) ? form.sections : null;
 
-        //     // Remove sections from forms where isEventPast is true
-        //     form.sections = !(form.info.isRegistrationClosed) ? form.sections : null;
+            // Add the form to the accumulator
+            acc.push(form);
+            return acc;
+        }, []);
 
-        //     // Add the form to the accumulator
-        //     acc.push(form);
-        //     return acc;
-        // }, []);
-
-        // console.log(filteredForms)
+        console.log(filteredForms)
 
         res.status(200).json({
             success: true,
