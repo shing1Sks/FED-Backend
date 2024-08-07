@@ -72,7 +72,7 @@ const addRegistration = expressAsyncHandler(async (req, res, next) => {
     // Filter out null values from sections
     sections = sections.filter(section => section !== null);
     console.log("filtered sections", sections);
-    
+
     console.log("updated sections ",sections);
 
     if (!_id || !sections || !Array.isArray(sections)) {
@@ -246,9 +246,10 @@ const addRegistration = expressAsyncHandler(async (req, res, next) => {
 const generateTeamCode = async (relatedFormName, currentFormName, existingTeamsCount = 0) => {
     const relatedEventCode = relatedFormName?.slice(0, 2).toUpperCase();
     const currentFormCode = currentFormName?.slice(0, 2).toUpperCase();
-    const teamCount = existingTeamsCount.toString().slice(-3).padStart(3, '0'); // Limit to 3 digits
+    const teamCount = existingTeamsCount.toString().padStart(3, '0');
+    const randomNum = Math.floor(1000 + Math.random() * 9000).toString();
 
-    const teamCode = `${relatedEventCode ? relatedEventCode + "-" : ""}${currentFormCode ? currentFormCode + "-" : ""}${teamCount}`;
+    const teamCode = `${relatedEventCode ? relatedEventCode + "-" : ""}${currentFormCode ? currentFormCode + "-" : ""}${teamCount}-${randomNum}`;
 
     return teamCode;
 };
