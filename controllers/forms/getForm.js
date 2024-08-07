@@ -3,28 +3,36 @@ const prisma = new PrismaClient();
 const { ApiError } = require('../../utils/error/ApiError');
 
 //@description     Get all form details based on user access
-//@route           GET /api/form/getAllForms
+//@route           GET /api/form/getAllForms?id=<formId>
 //@access          PUBLIC 
 const getAllForms = async (req, res, next) => {
     try {
-        const forms = await prisma.form.findMany({});
+        console.log("get all forms ",req.query.id);
+        const forms = await prisma.form.findMany({
+            where: {
+                id: req.query.id
+            }
+        });
 
-        // const filteredForms = forms.reduce((acc, form) => {
-        //     // Filter out forms where isPublic is false
-        //     if (!form.info.isPublic) return acc;
 
-        //     // Remove sections from forms where isEventPast is true
-        //     form.sections = !(form.info.isEventPast || form.info.isRegistrationClosed) ? form.sections : null;
+        const filteredForms = forms.reduce((acc, form) => {
+            // Filter out forms where isPublic is false
+            if (!form.info.isPublic) return acc;
 
-        //     // Add the form to the accumulator
-        //     acc.push(form);
-        //     return acc;
-        // }, []);
+            // Remove sections from forms where isEventPast is true
+            form.sections = !(form.info.isEventPast || form.info.isRegistrationClosed) ? form.sections : null;
+
+            // Add the form to the accumulator
+            acc.push(form);
+            return acc;
+        }, []);
+
+        console.log(filteredForms)
 
         res.status(200).json({
             success: true,
             message: 'All forms fetched successfully',
-            events : forms
+            events: filteredForms
         });
     } catch (error) {
         console.error('Error while getting forms:', error);
