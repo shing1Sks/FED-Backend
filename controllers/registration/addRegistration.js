@@ -28,42 +28,52 @@ const validateCurrentForm = expressAsyncHandler(async (form, user, userSubmitted
         throw new ApiError(400, "Maximum registration limit reached");
     }
 
-    const arrayOfFormSections = sections.map(section => section._id);
-    const arrayOfFormFields = sections.flatMap(section => section.fields.map(field => field._id));
+    // const arrayOfFormSections = sections.map(section => section._id);
+    // const arrayOfFormFields = sections.flatMap(section => section.fields.map(field => field._id));
 
-    console.log("Actual form sections", arrayOfFormSections);
-    console.log("Actual form fields", arrayOfFormFields);
+    // console.log("Actual form sections", arrayOfFormSections);
+    // console.log("Actual form fields", arrayOfFormFields);
 
-    let isFormSanitized = userSubmittedSections.every(section => {
-        if (!arrayOfFormSections.includes(section._id)) {
-            console.log("Manipulated section: " + section.name, section._id);
-            return false;
-        } else {
-            console.log("Entering field search for: ", section.name);
-            return section.fields.every(field => {
-                if (!arrayOfFormFields.includes(field._id)) {
-                    console.log("Manipulated field: " + field.name, field._id);
-                    return false;
-                }
-                return true;
-            });
-        }
-    });
+    // let isFormSanitized = userSubmittedSections.every(section => {
+    //     if (!arrayOfFormSections.includes(section._id)) {
+    //         console.log("Manipulated section: " + section.name, section._id);
+    //         return false;
+    //     } else {
+    //         console.log("Entering field search for: ", section.name);
+    //         return section.fields.every(field => {
+    //             if (!arrayOfFormFields.includes(field._id)) {
+    //                 console.log("Manipulated field: " + field.name, field._id);
+    //                 return false;
+    //             }
+    //             return true;
+    //         });
+    //     }
+    // });
 
-    console.log(isFormSanitized)
+    // console.log(isFormSanitized)
 
-    if (!isFormSanitized) {
-        throw new ApiError(400, "Manipulated section/Field data");
-    }
+    // if (!isFormSanitized) {
+    //     throw new ApiError(400, "Manipulated section/Field data");
+    // }
 
-    console.log("correct sections value", isFormSanitized);
+    // console.log("correct sections value", isFormSanitized);
 });
 
 
 const addRegistration = expressAsyncHandler(async (req, res, next) => {
-    console.log("Entering add");
 
-    const { _id, sections } = req.body;
+
+    // console.log("Entering add" ,req.body);
+
+    const { _id } = req.body;
+    let sections = req.body.sections;
+    sections = JSON.parse(sections);
+
+    // Filter out null values from sections
+    sections = sections.filter(section => section !== null);
+    console.log("filtered sections", sections);
+    
+    console.log("updated sections ",sections);
 
     if (!_id || !sections || !Array.isArray(sections)) {
         return next(new ApiError(400, "All fields are required"));
@@ -223,7 +233,7 @@ const addRegistration = expressAsyncHandler(async (req, res, next) => {
         console.log(updatedUser);
         console.log("regTracker", updateFormRegistrationList);
 
-        res.json({ message: "Registration successful", registration });
+        res.json({ message: "Registration successful", teamName: registration.teamName, teamCode: registration.teamCode });
     }
     catch (error) {
         console.error("Error during registration:", error);
