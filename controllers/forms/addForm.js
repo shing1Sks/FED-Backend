@@ -4,8 +4,12 @@ const { ApiError } = require("../../utils/error/ApiError");
 const uploadimage = require("../../utils/image/uploadImage");
 const status = require("http-status");
 
-const imageHeight = 350.67;
-const imageWidth = 196.37;
+const QrImageHeight = 150;
+const QrImageWidth = 400;
+
+const FormImageHeight = 350.67;
+const FormImageWidth = 196.37;
+
 
 // @description     Add regForm
 // @route           POST /api/form/addForm
@@ -64,14 +68,14 @@ const addForm = async (req, res, next) => {
       : null;
 
     if (eventImgFile) {
-      const result = await uploadimage(eventImgFile.path, "FormImages", imageHeight, imageWidth);
+      const result = await uploadimage(eventImgFile.path, "FormImages", FormImageHeight, FormImageWidth);
       info.eventImg = result ? result.secure_url : null;
     } else {
       new ApiError(status.BAD_REQUEST, "Event image not found");
     }
 
     if (qrmediaFile) {
-      const result = await uploadimage(qrmediaFile.path, "QRMediaImages");
+      const result = await uploadimage(qrmediaFile.path, "QRMediaImages", QrImageWidth, QrImageHeight);
       info.receiverDetails.media = result ? result.secure_url : null;
     } else {
       new ApiError(status.BAD_REQUEST, "QR media image not found");

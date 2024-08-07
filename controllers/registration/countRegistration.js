@@ -4,7 +4,7 @@ const { ApiError } = require('../../utils/error/ApiError');
 
 // @description     Get the number of registrations for a specific form
 // @route           GET /api/form/registrationCount/:formId
-// @access          Public (or as per your authentication requirements)
+// @access          Public
 const getRegistrationCount = async (req, res, next) => {
     try {
         // Extract formId from request params
