@@ -4,10 +4,12 @@ const { ApiError } = require("../../utils/error/ApiError");
 const uploadimage = require("../../utils/image/uploadImage");
 const status = require("http-status");
 
+const imageHeight = 350.67;
+const imageWidth = 196.37;
+
 // @description     Add regForm
 // @route           POST /api/form/addForm
 // @access          Admins
-
 const addForm = async (req, res, next) => {
   try {
     const {
@@ -62,7 +64,7 @@ const addForm = async (req, res, next) => {
       : null;
 
     if (eventImgFile) {
-      const result = await uploadimage(eventImgFile.path, "FormImages");
+      const result = await uploadimage(eventImgFile.path, "FormImages", imageHeight, imageWidth);
       info.eventImg = result ? result.secure_url : null;
     } else {
       new ApiError(status.BAD_REQUEST, "Event image not found");
