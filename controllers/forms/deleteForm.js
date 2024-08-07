@@ -1,9 +1,11 @@
+// controllers/form/deleteForm.js
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const { ApiError } = require('../../utils/error/ApiError');
 const deleteImage = require('../../utils/image/deleteImage');
 
 //@description     Delete Form
+//@route           delete /api/form/deleteForm/:id
 //@route           DELETE /api/form/deleteForm/:id
 //@access          Admins
 const deleteForm = async (req, res, next) => {
@@ -45,5 +47,4 @@ const deleteForm = async (req, res, next) => {
         return next(new ApiError(500, 'Error in deleting form', error));
     }
 };
-
 module.exports = { deleteForm };
