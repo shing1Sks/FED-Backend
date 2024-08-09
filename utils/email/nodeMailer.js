@@ -1,12 +1,13 @@
 const mailTransporter = require('../../config/nodeMailer');
 
-function sendMail(to, subject, htmlContent) {
+function sendMail(to, subject, htmlContent, textContent) {
     return new Promise((resolve, reject) => {
         let mailDetails = {
             from: process.env.MAIL_USER || "i.m.saurav003@gmail.com",
             to: to,
             subject: subject,
-            html: htmlContent
+            html: htmlContent,
+            text: textContent || htmlContent.replace(/<[^>]+>/g, '')
         };
 
         mailTransporter.sendMail(mailDetails, function (err, data) {
