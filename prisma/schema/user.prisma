@@ -36,7 +36,7 @@ model user {
   whatsappNo       String?  
   extra            Json?
   regForm          String[]           @default([])
-  editProfileCount Int?               
+  editProfileCount Int?               @default(5)
   userForms        formRegistration[]
 
   @@map("userdb")

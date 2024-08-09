@@ -10,6 +10,7 @@ model formRegistration {
   value             Json[]
   regTeamMemEmails  String[]
 
+  teamSize          Int      @default(1)
   teamName          String
   teamCode          String
 

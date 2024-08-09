@@ -1,11 +1,16 @@
 model registrationTracker {
-  id                String   @id @default(auto()) @map("_id") @db.ObjectId
+  id                      String   @id @default(auto()) @map("_id") @db.ObjectId
 
-  form              form     @relation(fields: [formId], references: [id])
-  formId            String   @map("formId") @db.ObjectId @unique
+  form                    form     @relation(fields: [formId], references: [id])
+  formId                  String   @map("formId") @db.ObjectId @unique
 
-  regTeamNames      String[]
-  regUserEmails     String[]
+  regTeamNames            String[]
+  regUserEmails           String[]
+
+  totalRegistrationCount  Int?     @default(1)
+  totalClickCount         Int?     @default(0)
+  faildAttempt            Json[]
+  faildAttemptCount       Int?     @default(0)  
 
   @@map("registration_tracker")
 }

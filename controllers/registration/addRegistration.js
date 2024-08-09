@@ -3,6 +3,8 @@ const prisma = new PrismaClient();
 const { ApiError } = require("../../utils/error/ApiError");
 const expressAsyncHandler = require("express-async-handler");
 const updateUser = require("../../utils/user/updateUser");
+const { sendMail } = require("../../utils/email/nodeMailer");
+const loadTemplate = require("../../utils/email/loadTemplate");
 
 const validateCurrentForm = expressAsyncHandler(async (form, user, userSubmittedSections) => {
     const { info, sections, formAnalytics } = form;
@@ -10,70 +12,41 @@ const validateCurrentForm = expressAsyncHandler(async (form, user, userSubmitted
     const { eventMaxReg, isRegistrationClosed, isEventPast, isPublic } = info;
 
     if (isRegistrationClosed === 'true' || isEventPast === 'true') {
-        throw new ApiError(400, "Registration Closed for this event!!");
+        throw new ApiError(400, "Sorry ! Registration has been closed for this event. If you feel this is an error, kindly contact us on fedkiit@gmail.com");
     }
 
     if (!isPublic && req.user.access != AccessTypes.ADMIN) {
-        throw new ApiError(401, "Registering to a private form is not allowed");
+        throw new ApiError(401, "Registering to a private form is not allowed. If you feel this is an error, kindly contact us on fedkiit@gmail.com");
     }
 
     console.log(formAnalytics[0]?.regUserEmails)
     console.log(user.regForm)
     const isAlreadyRegistered = formAnalytics[0]?.regUserEmails.includes(user.email) || user.regForm.includes(form._id);
     if (isAlreadyRegistered) {
-        throw new ApiError(400, "User has already registered for this form");
+        throw new ApiError(400, "User has already registered for this form. If you feel this is an error, kindly contact us on fedkiit@gmail.com");
     }
     console.log("Form analytics ", formAnalytics[0])
-    if (formAnalytics[0]?.regUserEmails?.length >= eventMaxReg) {
-        throw new ApiError(400, "Maximum registration limit reached");
+    if ((formAnalytics[0]?.regUserEmails?.length || formAnalytics[0]?.totalRegistrationCount || 0) >= ((parseInt(eventMaxReg)) || 1)) {
+        console.log((formAnalytics[0]?.regUserEmails?.length || formAnalytics[0]?.totalRegistrationCount)>=(parseInt(eventMaxReg)||1));
+        console.log(eventMaxReg);
+        console.log(parseInt(eventMaxReg))
+        throw new ApiError(400, "Maximum registration limit reached. If you feel this is an error, kindly contact us on fedkiit@gmail.com");
     }
-
-    // const arrayOfFormSections = sections.map(section => section._id);
-    // const arrayOfFormFields = sections.flatMap(section => section.fields.map(field => field._id));
-
-    // console.log("Actual form sections", arrayOfFormSections);
-    // console.log("Actual form fields", arrayOfFormFields);
-
-    // let isFormSanitized = userSubmittedSections.every(section => {
-    //     if (!arrayOfFormSections.includes(section._id)) {
-    //         console.log("Manipulated section: " + section.name, section._id);
-    //         return false;
-    //     } else {
-    //         console.log("Entering field search for: ", section.name);
-    //         return section.fields.every(field => {
-    //             if (!arrayOfFormFields.includes(field._id)) {
-    //                 console.log("Manipulated field: " + field.name, field._id);
-    //                 return false;
-    //             }
-    //             return true;
-    //         });
-    //     }
-    // });
-
-    // console.log(isFormSanitized)
-
-    // if (!isFormSanitized) {
-    //     throw new ApiError(400, "Manipulated section/Field data");
-    // }
-
-    // console.log("correct sections value", isFormSanitized);
 });
 
 
 const addRegistration = expressAsyncHandler(async (req, res, next) => {
-
-
-    // console.log("Entering add" ,req.body);
-
+    console.log("Entering add", req.body);
+    console.log(req.body)
     const { _id } = req.body;
     let sections = req.body.sections;
     sections = JSON.parse(sections);
-
+    console.log("un-filtered sections", sections);
     // Filter out null values from sections
     sections = sections.filter(section => section !== null);
     console.log("filtered sections", sections);
 
-    console.log("updated sections ",sections);
+    console.log("updated sections ", sections);
 
     if (!_id || !sections || !Array.isArray(sections)) {
         return next(new ApiError(400, "All fields are required"));
@@ -84,6 +57,8 @@ const addRegistration = expressAsyncHandler(async (req, res, next) => {
             where: { id: _id },
             include: { formAnalytics: true },
         });
+        console.log("Form fetched from the database", form)
+
         if (!form) {
             return next(new ApiError(404, "Form not found"));
         }
@@ -93,8 +68,13 @@ const addRegistration = expressAsyncHandler(async (req, res, next) => {
 
         const { info } = form;
         const { relatedEvent } = info;
-
+        let teamName = [req.user.email];
+        let teamCode = req.user.email;
         let relatedEventForm = null;
+        let createTeamSection;
+        let joinTeamSection;
+        let teamExists;
+
         if (relatedEvent && relatedEvent !== "null" && relatedEvent !== null) {
             relatedEventForm = await prisma.form.findUnique({
                 where: { id: relatedEvent },
@@ -106,8 +86,8 @@ const addRegistration = expressAsyncHandler(async (req, res, next) => {
             }
 
             // const userAlreadyRegisteredInRelatedForm = relatedEventForm.formAnalytics[0]?.regUserEmails?.includes(user.email);
-            console.log(req.user.regForm.includes(form.relatedEvent))
-            console.log("related event regUserEmails", relatedEventForm.formAnalytics[0]?.regUserEmails)
+            // console.log(req.user.regForm.includes(form.relatedEvent))
+            // console.log("related event regUserEmails", relatedEventForm.formAnalytics[0]?.regUserEmails)
 
             const userAlreadyRegisteredInRelatedForm = req.user.regForm.includes(form.relatedEvent) || relatedEventForm.formAnalytics[0]?.regUserEmails?.includes(req.user.email);
 
@@ -116,32 +96,40 @@ const addRegistration = expressAsyncHandler(async (req, res, next) => {
             }
             console.log("related event check passed");
         }
+
         let regTeamMemEmails = [];
-        // const values = [];
+        // console.log("Team Name :", teamName)
+        // console.log("Team Code : ", teamCode)
+        console.log("setions : ",sections);
+        
+        const sectionsObject = { 
+            user_name : req.user.name,
+            user_id : req.user.id,
+            user_email : req.user.email,
+            sections: sections 
+        };
+        console.log("sections Object : ", sectionsObject)
 
-        let teamName = req.user.name;
-        let teamCode = req.user.email;
-
-        if (relatedEvent && relatedEvent !== "null") {
+        if (info.participationType !== "Individual") {
 
             console.log("related", relatedEventForm.info.eventTitle)
             console.log("eventTitle", info.eventTitle)
             console.log("count", form.formAnalytics[0]?.regUserEmails.length);
             teamCode = await generateTeamCode(relatedEventForm.info.eventTitle, info.eventTitle, form.formAnalytics[0]?.regUserEmails.length);
-        }
 
-        console.log("Team Code : ", teamCode)
-        const sectionsObject = [{ sections: sections }];
 
-        if (form.info.participationType !== "Individual") {
-            const createTeamSection = sections.find(section => section.name === "Create Team");
-            const joinTeamSection = sections.find(section => section.name === "Join Team");
+            createTeamSection = sections.find(section => section.name === "Create Team");
+            joinTeamSection = !createTeamSection ? sections.find(section => section.name === "Join Team") : null;
+
 
             if (createTeamSection) {
                 const teamNameField = createTeamSection.fields.find(field => field.name === "Team Name");
-
                 if (teamNameField) {
-                    teamName = teamNameField.value;
+                    teamName = [teamNameField.value];
+                    if (form.formAnalytics[0]?.regTeamNames.includes(teamName[0])) { 
+                        return next(new ApiError(400, "! This team name already taken !\n Please choose a different one."));
+                    }
+                    teamName
                     regTeamMemEmails.push(req.user.email);
                 } else {
                     return next(new ApiError(400, "Team Name field is required for Create Team"));
@@ -150,7 +138,7 @@ const addRegistration = expressAsyncHandler(async (req, res, next) => {
                 const teamCodeField = joinTeamSection.fields.find(field => field.name === "Team Code");
 
                 if (teamCodeField) {
-                    const teamExists = await prisma.formRegistration.findUnique({
+                    teamExists = await prisma.formRegistration.findUnique({
                         where: {
                             formId_teamCode: {
                                 formId: _id,
@@ -161,27 +149,42 @@ const addRegistration = expressAsyncHandler(async (req, res, next) => {
                     });
 
                     if (!teamExists) {
+                        console.log("Team does not exist");
                         return next(new ApiError(404, "Invalid team code"));
                     }
 
-                    if (teamExists.regTeamMemEmails.length >= form.info.maxTeamSize) {
-                        return next(new ApiError(400, "Team size exceeded"));
+                    if (teamExists.regTeamMemEmails.length >= (parseInt(info.maxTeamSize) || 1)) {
+                        console.log("team full");
+                        return next(new ApiError(400, "This team is full"));
                     }
 
                     // Log the teamExists object in a readable format
                     console.log("team Exists", JSON.stringify(teamExists, null, 2));
 
 
-
+                    teamName = teamExists.teamName;
                     teamCode = teamCodeField.value;
                     regTeamMemEmails = [...teamExists.regTeamMemEmails, req.user.email];
                 }
-                sectionsObject.push({sections});
+                // sections.user_id = req.user.id;
+                // sections.user_email = req.user.email;
+                // sections.user_name = req.user.name;
+                
+
+                // sectionsObject.push({ sections });
             }
             console.log("reg team members ", regTeamMemEmails)
         }
 
-        
+        const paymentSection = sections.find(section => section.name === "Payment Details");
+        if (paymentSection) {
+            console.log("payment section is present in the form");
+            if (req.file || req.files) {
+                console.log("file", req.file)
+                console.log("files", req.files)
+            }
+        }
+
         console.log(sectionsObject)
 
         const registration = await prisma.formRegistration.upsert({
@@ -193,19 +196,22 @@ const addRegistration = expressAsyncHandler(async (req, res, next) => {
 
             },
             update: {
-                userId: req.user.id,
-                value: sectionsObject,
+                value: { push : sectionsObject},
                 regTeamMemEmails: {
                     set: regTeamMemEmails,
+                },
+                teamSize: {
+                    increment: 1
                 }
             },
             create: {
                 formId: _id,
                 userId: req.user.id,
-                value: sectionsObject,
+                value: [sectionsObject],
                 regTeamMemEmails: [req.user.email],
+                teamSize: 1,
                 teamCode,
-                teamName,
+                teamName : teamName[0],
             }
         });
 
@@ -219,25 +225,63 @@ const addRegistration = expressAsyncHandler(async (req, res, next) => {
                 regUserEmails: {
                     push: req.user.email
                 },
-                regTeamNames: {
-                    push: teamName
-                },
+                regTeamNames: {set : teamName},
+                totalRegistrationCount: {
+                    increment: 1
+                }
             },
             create: {
                 formId: _id,
                 regUserEmails: [req.user.email],
-                regTeamNames: teamName ? [teamName] : []
+                regTeamNames: teamName ? {set : teamName} : [],
+                totalRegistrationCount: 1
             }
         });
 
         console.log(updatedUser);
         console.log("regTracker", updateFormRegistrationList);
 
-        res.json({ message: "Registration successful", teamName: registration.teamName, teamCode: registration.teamCode });
+        res.json({ message: form.info.successMessage || "Registration successful", teamName: registration.teamName, teamCode: registration.teamCode });
+        // const placeholder = {
+        //     name: req.user.email,
+        //     successMessage: info.successMessage
+        // }
+        // const template = loadTemplate(
+        //     (info.participationType === "Team") ? teamRegSuccess : indvRegSuccess,
+        //     placeholder
+        // )
+
+
+        let textContent;
+        let subject;
+        let template;
+ 
+        //take content form the team
+        if (info.participationType === "Team") {
+
+
+
+            // textContent = 'Success text content for team event\n '
+            // template = '';
+            // if(joinTeamSection){}
+            // if(createTeamSection){}
+        }
+        else {
+            // textContent = 'Success text content for team event\n '
+            // template = ;
+
+        }
+        // const textContent = `Registration successfull in ${info.eventTitle}`;
+        sendMail(
+            req.user.email,
+            `Registration successfull in ${info.eventTitle}`,
+            null, 
+            info.successMessage
+        );
     }
     catch (error) {
         console.error("Error during registration:", error);
-        next(new ApiError(error.stausCode || 500, error.message || "Error during registration process"));
+        next(new ApiError(error.stausCode || 500, error.message || "Error during registration process",error));
     }
 
 });
@@ -250,7 +294,7 @@ const generateTeamCode = async (relatedFormName, currentFormName, existingTeamsC
     const randomNum = Math.floor(1000 + Math.random() * 9000).toString();
 
     const teamCode = `${relatedEventCode ? relatedEventCode + "-" : ""}${currentFormCode ? currentFormCode + "-" : ""}${teamCount}-${randomNum}`;
-
     return teamCode;
 };
+
 module.exports = { addRegistration };

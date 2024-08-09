@@ -7,15 +7,26 @@ const expressAsyncHandler = require('express-async-handler');
 // @description     Form analytics
 // @route           GET /api/form/formAnalytics/:id
 // @access          ADMIN
-const analytics = expressAsyncHandler(async (req, res) => {
-  const { id: formId } = req.params;
-  const form = await prisma.form.findUnique({
-    where: { id: formId },
-    include: { formAnalytics: true, userReg: true }
-  });
+const analytics = expressAsyncHandler(async (req, res, next ) => {
+  try {
+    console.log("entering form analytics")
+    const { id: formId } = req.params;
+    let form = await prisma.form.findUnique({
+      where: { id: formId },
+      include: { formAnalytics: true, sections : false}
+    });
 
-  return res.status(200).json({ message: "success", form });
+    let formAnalytics = form.formAnalytics[0];
+    formAnalytics.regCount = formAnalytics.regUserEmails.length;
+    
+    return res.status(200).json({ message: "success", form : form.formAnalytics[0] });
+  } catch (error) {
+    console.log(error)
+    next(new ApiError(500,"Internal Server Error",error));
+  }
 });
+
+
 
 // const addClickCount = expressAsyncHandler(async (req, res, next) => {
 //   const { formId } = req.body;

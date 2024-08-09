@@ -14,12 +14,16 @@ const upload = multer();
 router.get('/getAllForms', formController.getAllForms)
 router.post('/contact', formController.contact);
 
+router.get(
+    "/formAnalytics/:id",
+    formController.analytics
+)
 
 router.use(verifyToken);
 
 router.use('/register', 
     checkAccess('USER'), 
-    imageUpload.single('image'), 
+    imageUpload.any(), 
     registrationController.addRegistration
 );
 
@@ -30,10 +34,10 @@ router.get(
   registrationController.getRegistrationCount
 );
 
-router.get(
-    "/formAnalytics/:id",
-    formController.analytics
-)
+// router.get(
+//     "/formAnalytics/:id",
+//     formController.analytics
+// )
 
 // Add middleware verifyToken, isAdmin
 router.use(checkAccess("ADMIN"));
