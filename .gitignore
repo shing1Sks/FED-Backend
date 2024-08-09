@@ -16,3 +16,4 @@ node_modules/
 # Ignore ideation folder
 ideation/
 
+createuser.js
