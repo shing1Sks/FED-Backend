@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { validate } = require('../../../middleware/validationMiddleware');
 const { registerValidationRules, loginValidationRules } = require('../../../middleware/validator/authValidator');
-const passport = require('passport');
+// const passport = require('passport');
 
 // Import the auth controllers required
 const { login, verifyEmail, register, forgetPassword, changePassword, logout, googleAuth, googleLogin} = require('../../../controllers/auth/authController');
