@@ -14,11 +14,6 @@ const upload = multer();
 router.get('/getAllForms', formController.getAllForms)
 router.post('/contact', formController.contact);
 
-router.get(
-    "/formAnalytics/:id",
-    formController.analytics
-)
-
 router.use(verifyToken);
 
 router.use('/register', 
@@ -26,7 +21,11 @@ router.use('/register',
     imageUpload.any(), 
     registrationController.addRegistration
 );
-
+router.get(
+    "/getFormAnalytics/:id",
+    checkAccess(['ADMIN']),
+    formController.analytics
+)
 
 router.get(
   "/registrationCount",

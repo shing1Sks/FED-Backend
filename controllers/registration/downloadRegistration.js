@@ -3,6 +3,30 @@ const { PrismaClient } = require('@prisma/client');
 const expressAsyncHandler = require('express-async-handler');
 const prisma = new PrismaClient();
 
+// Recursive function to flatten nested objects and arrays
+const flattenObject = (obj, prefix = '') => {
+    let result = {};
+
+    Object.keys(obj).forEach(key => {
+        const value = obj[key];
+        const newKey = prefix ? `${prefix}_${key}` : key;
+
+        if (typeof value === 'object' && value !== null) {
+            if (Array.isArray(value)) {
+                value.forEach((item, index) => {
+                    Object.assign(result, flattenObject(item, `${newKey}_${index + 1}`));
+                });
+            } else {
+                Object.assign(result, flattenObject(value, newKey));
+            }
+        } else {
+            result[newKey] = value;
+        }
+    });
+
+    return result;
+};
+
 const downloadRegistration = expressAsyncHandler(async (req, res, next) => {
     const formId = req.params.id;
 
@@ -25,26 +49,23 @@ const downloadRegistration = expressAsyncHandler(async (req, res, next) => {
         const worksheet = workbook.addWorksheet('Form Registrations');
 
         // Initialize headers and rows
-        let headers = ['userId', 'formId']; // Include userId and formId as initial headers
+        let headers = [];
         let rows = [];
 
         // Iterate through each formData entry to collect headers and rows
         formData.forEach(entry => {
-            let row = { userId: entry.userId, formId: entry.formId }; // Add userId and formId to each row
-            entry.value.forEach(section => {
-                // Add section properties as columns
-                Object.keys(section).forEach(key => {
-                    if (key !== 'sectionId' && key !== 'sectionNo' && key !== 'sectionTitle') {
-                        // Create unique headers
-                        if (!headers.includes(key)) {
-                            headers.push(key);
-                        }
-                        // Populate row with section data
-                        row[key] = Array.isArray(section[key]) ? section[key].join(', ') : section[key];
+            // Flatten each item in the 'value' array
+            const flattenedValues = entry.value.map(item => flattenObject(item));
+
+            flattenedValues.forEach(rowData => {
+                // Collect headers from the flattened object
+                Object.keys(rowData).forEach(header => {
+                    if (!headers.includes(header)) {
+                        headers.push(header);
                     }
                 });
+                rows.push(rowData); // Add row to rows array
             });
-            rows.push(row); // Add row to rows array
         });
 
         // Add headers to worksheet

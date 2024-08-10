@@ -6,8 +6,8 @@ const { ApiError } = require("../error/ApiError");
 const uploadImage = async (
   filePath,
   folder = "MemberImages",
-  height = 150,
-  width = 150,
+  height = null,
+  width = null,
   crop = "limit"
 ) => {
   try {

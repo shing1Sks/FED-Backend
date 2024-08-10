@@ -2,18 +2,35 @@ const multer = require("multer");
 const path = require("path");
 
 // Configuration for image files
-
 const imageStorage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, "uploads/images/");
   },
   filename: function (req, file, cb) {
+    let prefix;
+
+    // Determine prefix based on the route
+    if (req.originalUrl.includes("/user/editProfileImage")) {
+      prefix = `1-editProfile-${req.user.email}-`; // Prefix '1' for profile pictures
+    } else if (req.originalUrl?.includes("/form/register")) {
+      prefix = `2-paymentScreenshot-${req.user.email}-`; // Prefix '2' for document uploads
+    } else if (req.originalUrl?.includes("/user/addMember")) {
+      prefix = `3-AddMember-${req.body.email}-`; // Prefix '2' for document uploads
+    } else if (req.originalUrl?.includes("/form/addForm") || eq.originalUrl.includes("/form/addEdit")) {
+      prefix = `4-FormImages-${req.body.email}-`; // Prefix '2' for document uploads
+    } else {
+      prefix = "0"; // Default prefix
+    }
+
     const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-    const filename = `${uniqueSuffix}${path.extname(file.originalname)}`;
+    const filename = `${prefix}.${uniqueSuffix}${path.extname(file.originalname)}`;
     console.log(`Image filename generated: ${filename}`);
     cb(null, filename);
   },
 });
+
+module.exports = multer({ storage: imageStorage });
+
 
 const imageUpload = multer({
   storage: imageStorage,

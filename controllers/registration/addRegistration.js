@@ -5,6 +5,7 @@ const expressAsyncHandler = require("express-async-handler");
 const updateUser = require("../../utils/user/updateUser");
 const { sendMail } = require("../../utils/email/nodeMailer");
 const loadTemplate = require("../../utils/email/loadTemplate");
+const uploadImage = require("../../utils/image/uploadImage");
 
 const validateCurrentForm = expressAsyncHandler(async (form, user, userSubmittedSections) => {
     const { info, sections, formAnalytics } = form;
@@ -27,7 +28,7 @@ const validateCurrentForm = expressAsyncHandler(async (form, user, userSubmitted
     }
     console.log("Form analytics ", formAnalytics[0])
     if ((formAnalytics[0]?.regUserEmails?.length || formAnalytics[0]?.totalRegistrationCount || 0) >= ((parseInt(eventMaxReg)) || 1)) {
-        console.log((formAnalytics[0]?.regUserEmails?.length || formAnalytics[0]?.totalRegistrationCount)>=(parseInt(eventMaxReg)||1));
+        console.log((formAnalytics[0]?.regUserEmails?.length || formAnalytics[0]?.totalRegistrationCount) >= (parseInt(eventMaxReg) || 1));
         console.log(eventMaxReg);
         console.log(parseInt(eventMaxReg))
         throw new ApiError(400, "Maximum registration limit reached. If you feel this is an error, kindly contact us on fedkiit@gmail.com");
@@ -100,13 +101,13 @@ const addRegistration = expressAsyncHandler(async (req, res, next) => {
         let regTeamMemEmails = [];
         // console.log("Team Name :", teamName)
         // console.log("Team Code : ", teamCode)
-        console.log("setions : ",sections);
-        
-        const sectionsObject = { 
-            user_name : req.user.name,
-            user_id : req.user.id,
-            user_email : req.user.email,
-            sections: sections 
+        console.log("setions : ", sections);
+
+        const sectionsObject = {
+            user_name: req.user.name,
+            user_id: req.user.id,
+            user_email: req.user.email,
+            sections: sections
         };
         console.log("sections Object : ", sectionsObject)
 
@@ -126,7 +127,7 @@ const addRegistration = expressAsyncHandler(async (req, res, next) => {
                 const teamNameField = createTeamSection.fields.find(field => field.name === "Team Name");
                 if (teamNameField) {
                     teamName = [teamNameField.value];
-                    if (form.formAnalytics[0]?.regTeamNames.includes(teamName[0])) { 
+                    if (form.formAnalytics[0]?.regTeamNames.includes(teamName[0])) {
                         return next(new ApiError(400, "! This team name already taken !\n Please choose a different one."));
                     }
                     teamName
@@ -169,7 +170,7 @@ const addRegistration = expressAsyncHandler(async (req, res, next) => {
                 // sections.user_id = req.user.id;
                 // sections.user_email = req.user.email;
                 // sections.user_name = req.user.name;
-                
+
 
                 // sectionsObject.push({ sections });
             }
@@ -179,9 +180,23 @@ const addRegistration = expressAsyncHandler(async (req, res, next) => {
         const paymentSection = sections.find(section => section.name === "Payment Details");
         if (paymentSection) {
             console.log("payment section is present in the form");
-            if (req.file || req.files) {
-                console.log("file", req.file)
-                console.log("files", req.files)
+            if (req.files?.length > 0) {
+                console.log("files", req.files);
+                const imagePath = req.files[0].path;
+                const result = await uploadImage(imagePath, req.files[0].fieldname || "PaymentScreenshot");
+                console.log(result);
+                sectionsObject.transactionScreenShot = result.secure_url;
+
+                const paymentScreenshotField = paymentSection.fields.find(field => field.name === "Payment Screenshot" && field.type === "image");
+
+                if (paymentScreenshotField) {
+                    // Update the value of the "Payment Screenshot" field with the secure URL
+                    paymentScreenshotField.value = result.secure_url;
+                    console.log("Payment Screenshot field updated successfully.");
+                } else {
+                    console.error("Payment Screenshot field not found.");
+                }
+
             }
         }
 
@@ -196,7 +211,7 @@ const addRegistration = expressAsyncHandler(async (req, res, next) => {
 
             },
             update: {
-                value: { push : sectionsObject},
+                value: { push: sectionsObject },
                 regTeamMemEmails: {
                     set: regTeamMemEmails,
                 },
@@ -211,7 +226,7 @@ const addRegistration = expressAsyncHandler(async (req, res, next) => {
                 regTeamMemEmails: [req.user.email],
                 teamSize: 1,
                 teamCode,
-                teamName : teamName[0],
+                teamName: teamName[0],
             }
         });
 
@@ -225,7 +240,7 @@ const addRegistration = expressAsyncHandler(async (req, res, next) => {
                 regUserEmails: {
                     push: req.user.email
                 },
-                regTeamNames: {set : teamName},
+                regTeamNames: { set: teamName },
                 totalRegistrationCount: {
                     increment: 1
                 }
@@ -233,7 +248,7 @@ const addRegistration = expressAsyncHandler(async (req, res, next) => {
             create: {
                 formId: _id,
                 regUserEmails: [req.user.email],
-                regTeamNames: teamName ? {set : teamName} : [],
+                regTeamNames: teamName ? { set: teamName } : [],
                 totalRegistrationCount: 1
             }
         });
@@ -255,7 +270,7 @@ const addRegistration = expressAsyncHandler(async (req, res, next) => {
         let textContent;
         let subject;
         let template;
- 
+
         //take content form the team
         if (info.participationType === "Team") {
 
@@ -275,13 +290,13 @@ const addRegistration = expressAsyncHandler(async (req, res, next) => {
         sendMail(
             req.user.email,
             `Registration successfull in ${info.eventTitle}`,
-            null, 
+            null,
             info.successMessage
         );
     }
     catch (error) {
         console.error("Error during registration:", error);
-        next(new ApiError(error.stausCode || 500, error.message || "Error during registration process",error));
+        next(new ApiError(error.stausCode || 500, error.message || "Error during registration process", error));
     }
 
 });
