@@ -13,7 +13,7 @@ const analytics = expressAsyncHandler(async (req, res, next) => {
     const { id: formId } = req.params;
     let form = await prisma.form.findUnique({
       where: { id: formId },
-      include: { formAnalytics: true, sections: false }
+      include: { formAnalytics: true, sections: false, info:true }
     });
     console.log("form",form);
     if(form.formAnalytics.length === 0){
@@ -23,7 +23,7 @@ const analytics = expressAsyncHandler(async (req, res, next) => {
     let formAnalytics = form.formAnalytics[0];
     let yearCounts;
     console.log("form analytics : ",formAnalytics);
-    formAnalytics.regCount = formAnalytics?.regUserEmails?.length;
+    // formAnalytics.regCount = formAnalytics?.regUserEmails?.length;
     try {
       const users = await prisma.user.findMany({
         where: {
@@ -43,7 +43,7 @@ const analytics = expressAsyncHandler(async (req, res, next) => {
     }
 
     console.log("year counts : ", yearCounts);
-    return res.status(200).json({ message: "success", form: form.formAnalytics[0], registrationCount: formAnalytics.regCount, yearCounts });
+    return res.status(200).json({ message: "success", form: form, yearCounts });
   } catch (error) {
     console.log(error)
     next(new ApiError(500, "Internal Server Error", error));

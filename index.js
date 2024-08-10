@@ -87,7 +87,9 @@ const { addMembersThroughExcel } = require('./controllers/userController/userCon
 app.post('/user/addMemberExcel', excelUpload.single('file'), addMembersThroughExcel);
 
 */
-
+app.use('/',(req,res) => {
+    res.send(`FED-Backend listening to PORT -> ${PORT}`);
+})
 // Start server
 app.listen(PORT, () => {
     console.log(`FED-Backend listening to PORT -> ${PORT}`);
