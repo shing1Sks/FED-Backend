@@ -23,15 +23,14 @@ router.use('/register',
 );
 router.get(
     "/getFormAnalytics/:id",
-    checkAccess(['ADMIN']),
     formController.analytics
 )
 
-router.get(
-  "/registrationCount",
-  checkAccess("MEMBER"),
-  registrationController.getRegistrationCount
-);
+// router.get(
+//   "/registrationCount",
+//   checkAccess("MEMBER"),
+//   registrationController.getRegistrationCount
+// );
 
 // router.get(
 //     "/formAnalytics/:id",
