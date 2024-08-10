@@ -8,7 +8,6 @@ const errorHandler = require('./middleware/errorHandler');
 const logRequestBody = require('./middleware/requestLog');
 const passport = require("passport");
 const cookieSession = require("cookie-session");
-const passportStrategy = require("./config/passport");
 
 const app = express();
 
@@ -43,13 +42,7 @@ app.use(cors("*"))
 //     next();
 // });
 
-// Radio Button
-// > Create Team
-// > Join Team
-// Team Name - 
-// Enter Team Code -
-// Enter Team Name
-// Enter Team Code
+
 
 app.use(cookieSession({
     name: "session",
@@ -58,8 +51,8 @@ app.use(cookieSession({
 })
 );
 
-app.use(passport.initialize());
-app.use(passport.session());
+// app.use(passport.initialize());
+// app.use(passport.session());
 
 // Use body-parser to parse JSON
 app.use(bodyParser.json());
@@ -78,15 +71,6 @@ app.use(jsonParseErrorHandler);
 // Error-handling middleware - should be at the end
 app.use(errorHandler);
 
-
-/*
-const {excelUpload } = require('./middleware/upload');
-const { addMembersThroughExcel } = require('./controllers/userController/userController');
-
-// Route for uploading Excel files
-app.post('/user/addMemberExcel', excelUpload.single('file'), addMembersThroughExcel);
-
-*/
 app.use('/',(req,res) => {
     res.send(`FED-Backend listening to PORT -> ${PORT}`);
 })

@@ -4,6 +4,10 @@ FROM node:latest
 # Set the working directory in the container
 WORKDIR /app
 
+# Pass environment variables for Prisma
+ARG DATABASE_URL
+ENV DATABASE_URL=${DATABASE_URL}
+
 # Copy package.json and package-lock.json (if available)
 COPY package*.json ./
 

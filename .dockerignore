@@ -18,4 +18,5 @@ ideation/
 # Ignore specific files
 createuser.js
 
+# Ignore the env
 .env
