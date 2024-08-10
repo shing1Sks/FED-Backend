@@ -20,7 +20,7 @@ const analytics = expressAsyncHandler(async (req, res, next) => {
     "DIRECTOR_OPERATIONS",
     "DIRECTOR_SPONSORSHIP"
   ]
-  if (!allowedUsers.includes(req.user.access) && req.user.email != "srex@fedkiit") {
+  if (!allowedUsers.includes(req.user.access) && req.user.email != "srex@fedkiit.com") {
     return next(new ApiError(status.UNAUTHORIZED, "Access Denied"))
   }
 
