@@ -29,7 +29,9 @@ const analytics = expressAsyncHandler(async (req, res, next) => {
     const { id: formId } = req.params;
     let form = await prisma.form.findUnique({
       where: { id: formId },
-      include: { formAnalytics: true }
+      include: { formAnalytics: true, sections : false
+        
+      }
     });
     console.log("form", form);
     if (form.formAnalytics.length === 0) {
