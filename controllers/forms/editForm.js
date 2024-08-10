@@ -5,6 +5,11 @@ const uploadimage = require("../../utils/image/uploadImage");
 const deleteImage = require("../../utils/image/deleteImage"); // Assuming a deleteImage function for deleting images
 const status = require("http-status");
 
+const QrImageHeight = 150;
+const QrImageWidth = 400;
+
+const FormImageHeight = 350.67;
+const FormImageWidth = 196.37;
 
 const editForm = async (req, res, next) => {
   const formId = req.params.id;
@@ -76,7 +81,7 @@ const editForm = async (req, res, next) => {
       }
 
       // Upload new image
-      const result = await uploadimage(eventImgFile.path, "FormImages");
+      const result = await uploadimage(eventImgFile.path, "FormImages", FormImageHeight, FormImageWidth);
       if (result) {
         updatedInfo.eventImg = result.secure_url;
       } else {
@@ -91,7 +96,7 @@ const editForm = async (req, res, next) => {
       }
 
       // Upload new QR media image
-      const result = await uploadimage(qrmediaFile.path, "QRMediaImages");
+      const result = await uploadimage(qrmediaFile.path, "QRMediaImages",QrImageHeight, QrImageWidth);
       if (result) {
         updatedInfo.receiverDetails.media = result.secure_url;
       } else {
