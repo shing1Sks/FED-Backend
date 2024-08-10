@@ -12,22 +12,24 @@ const getRegistrationCount = async (req, res, next) => {
 
         // Check if the form exists
         const formExists = await prisma.form.findUnique({
-            where: { id: formId }
+            where: { id: formId },
+            include: { formAnalytics: true }
         });
 
         if (!formExists) {
             return next(new ApiError(404, 'Form not found'));
         }
 
-        // Count the number of registrations for the form
-        const registrationCount = await prisma.formRegistration.count({
-            where: { formId: formId }
-        });
+        // // Count the number of registrations for the form
+        // const registrationCount = await prisma.formRegistration.count({
+        //     where: { formId: formId }
+        // });
+        console.log(formExists);
 
         res.status(200).json({
             success: true,
             message: 'Registration count fetched successfully',
-            data: { formId, registrationCount }
+            form: { count: formExists }
         });
     } catch (error) {
         console.error('Error fetching registration count:', error);
