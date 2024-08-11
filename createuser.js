@@ -9,7 +9,7 @@ async function deleteUsers(n) {
   const emailPattern = [];
   
   for (let i = 1; i <= n; i++) {
-    emailPattern.push(`user${201+i}@example.com`);
+    emailPattern.push(`user${i}@example.com`);
   }
 
   try {
@@ -35,12 +35,12 @@ async function createUsers(n) {
 
   for (let i = 1; i <= n; i++) {
     const user = {
-      email: `user${200+i}@example.com`,
-      name: `user${200+i}`,
-      access: "USER",
+      email: `member_creative${i}@example.com`,
+      name: `CREATIVE ${i}`,
+      access: "CREATIVE",
       year: "3rd",
       password: '$2a$10$z7cMuHyEvicDsSqS8nr4luPDaNLkA7m0rmkQihLh.4EyeyodkJqe6',
-      rollNumber: `22053002${i}`,
+      rollNumber: `220530${i}`,
       school: "CSE",
       college: "KIIT",
       contactNo: generateRandomPhoneNumber(), // random 10 digit number
@@ -66,5 +66,5 @@ async function createUsers(n) {
 }
 
 // Example usage: Create 10 users
-createUsers(50);
+createUsers(10);
 // deleteUsers(50)
