@@ -2,7 +2,7 @@ const { PrismaClient, AccessTypes } = require("@prisma/client");
 const prisma = new PrismaClient();
 const { ApiError } = require("../../utils/error/ApiError");
 const expressAsyncHandler = require("express-async-handler");
-const updateUser = require("../../utils/user/updateUser");
+// const updateUser = require("../../utils/user/updateUser");
 const { sendMail } = require("../../utils/email/nodeMailer");
 const loadTemplate = require("../../utils/email/loadTemplate");
 const uploadImage = require("../../utils/image/uploadImage");
@@ -39,15 +39,15 @@ const validateCurrentForm = expressAsyncHandler(async (form, user, userSubmitted
 const addRegistration = expressAsyncHandler(async (req, res, next) => {
     console.log("Entering add", req.body);
     console.log(req.body)
+
     const { _id } = req.body;
     let sections = req.body.sections;
     sections = JSON.parse(sections);
     console.log("un-filtered sections", sections);
+
     // Filter out null values from sections
     sections = sections.filter(section => section !== null);
     console.log("filtered sections", sections);
-
-    console.log("updated sections ", sections);
 
     if (!_id || !sections || !Array.isArray(sections)) {
         return next(new ApiError(400, "All fields are required"));
@@ -130,7 +130,6 @@ const addRegistration = expressAsyncHandler(async (req, res, next) => {
                     if (form.formAnalytics[0]?.regTeamNames.includes(teamName[0])) {
                         return next(new ApiError(400, "! This team name already taken !\n Please choose a different one."));
                     }
-                    teamName
                     regTeamMemEmails.push(req.user.email);
                 } else {
                     return next(new ApiError(400, "Team Name field is required for Create Team"));
@@ -163,7 +162,10 @@ const addRegistration = expressAsyncHandler(async (req, res, next) => {
                     console.log("team Exists", JSON.stringify(teamExists, null, 2));
 
 
-                    teamName = teamExists.teamName;
+                    teamName = [teamExists.teamName];
+
+                    teamName = [...new Set([...teamName, ...(form?.formAnalytics.length > 0 ? form.formAnalytics[0].regTeamNames : [])])];
+
                     teamCode = teamCodeField.value;
                     regTeamMemEmails = [...teamExists.regTeamMemEmails, req.user.email];
                 }
@@ -178,7 +180,8 @@ const addRegistration = expressAsyncHandler(async (req, res, next) => {
         }
 
         const paymentSection = sections.find(section => section.name === "Payment Details");
-        if (paymentSection) {
+        const paymentSectionInActualForm = form.sections.find(section => section.name === "Payment Details")
+        if (paymentSectionInActualForm && paymentSection) {
             console.log("payment section is present in the form");
             if (req.files?.length > 0) {
                 console.log("files", req.files);
@@ -198,65 +201,89 @@ const addRegistration = expressAsyncHandler(async (req, res, next) => {
                 }
 
             }
+            else {
+                return next(new ApiError(400, "Kindly Attach Payment Screenshot"));
+            }
+        }else if(paymentSectionInActualForm && !paymentSection){
+            return next(new ApiError(400,"Kindly fill the Payment section"));
         }
 
         console.log(sectionsObject)
 
-        const registration = await prisma.formRegistration.upsert({
-            where: {
-                formId_teamCode: {
-                    formId: _id, // Adjust this if needed based on your unique key
-                    teamCode
-                }
+        const transaction = await prisma.$transaction(async (prisma) => {
 
-            },
-            update: {
-                value: { push: sectionsObject },
-                regTeamMemEmails: {
-                    set: regTeamMemEmails,
+            // Step 1 : ADD REGISTRATION
+            const registration = await prisma.formRegistration.upsert({
+                where: {
+                    formId_teamCode: {
+                        formId: _id,
+                        teamCode
+                    }
                 },
-                teamSize: {
-                    increment: 1
+                update: {
+                    value: { push: sectionsObject },
+                    regTeamMemEmails: {
+                        set: regTeamMemEmails,
+                    },
+                    teamSize: {
+                        increment: 1
+                    }
+                },
+                create: {
+                    formId: _id,
+                    userId: req.user.id,
+                    value: [sectionsObject],
+                    regTeamMemEmails: [req.user.email],
+                    teamSize: 1,
+                    teamCode,
+                    teamName: teamName[0],
                 }
-            },
-            create: {
-                formId: _id,
-                userId: req.user.id,
-                value: [sectionsObject],
-                regTeamMemEmails: [req.user.email],
-                teamSize: 1,
-                teamCode,
-                teamName: teamName[0],
-            }
+            });
+
+            // const updatedUser = await updateUser({ email: req.user.email }, { regForm: _id });
+
+            // Step 2 : UPDATE THE USER
+            const updatedUser = await prisma.user.update({
+                where: {
+                    email: req.user.email
+                },
+                data: {
+                    regForm: {
+                        push: _id
+                    }
+                }
+            });
+
+            // Step 3 : UPDATE FORM ANALYTICS
+            const updateFormRegistrationList = await prisma.registrationTracker.upsert({
+                where: {
+                    formId: _id
+                },
+                update: {
+                    regUserEmails: {
+                        push: req.user.email
+                    },
+                    regTeamNames: { set: teamName },
+                    totalRegistrationCount: {
+                        increment: 1
+                    }
+                },
+                create: {
+                    formId: _id,
+                    regUserEmails: [req.user.email],
+                    regTeamNames: teamName ? { set: teamName } : [],
+                    totalRegistrationCount: 1
+                }
+            });
+
+            return { registration, updatedUser, updateFormRegistrationList };
         });
 
-        const updatedUser = await updateUser({ email: req.user.email }, { regForm: _id });
 
-        const updateFormRegistrationList = await prisma.registrationTracker.upsert({
-            where: {
-                formId: _id
-            },
-            update: {
-                regUserEmails: {
-                    push: req.user.email
-                },
-                regTeamNames: { set: teamName },
-                totalRegistrationCount: {
-                    increment: 1
-                }
-            },
-            create: {
-                formId: _id,
-                regUserEmails: [req.user.email],
-                regTeamNames: teamName ? { set: teamName } : [],
-                totalRegistrationCount: 1
-            }
-        });
+        console.log(transaction.updatedUser);
+        console.log("regTracker", transaction.updateFormRegistrationList);
 
-        console.log(updatedUser);
-        console.log("regTracker", updateFormRegistrationList);
-
-        res.json({ message: form.info.successMessage || "Registration successful", teamName: registration.teamName, teamCode: registration.teamCode });
+        res.json({ message: form.info.successMessage || "Registration successful", teamName: transaction.registration.teamName, teamCode: transaction.registration.teamCode });
         // const placeholder = {
         //     name: req.user.email,
         //     successMessage: info.successMessage
