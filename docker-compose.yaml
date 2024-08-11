@@ -1,10 +1,15 @@
 version: "3.9"
 services:
   node-application:
-    build: .
+    build:
+      context: .
+      args:
+        DATABASE_URL: ${DATABASE_URL} # Pass the DATABASE_URL from .env during build
     container_name: fed-backend
     ports:
       - "5000:5000"
     env_file:
       - .env
+    environment:
+      DATABASE_URL: ${DATABASE_URL} # Pass DATABASE_URL to the runtime environment
     restart: always

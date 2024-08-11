@@ -35,7 +35,7 @@ const editForm = async (req, res, next) => {
       isEventPast,
       sections,
     } = req.body;
-
+    // console.log("Sections",sections)
     // Fetch current form data
     const currentForm = await prisma.form.findUnique({
       where: { id: formId },
@@ -96,7 +96,7 @@ const editForm = async (req, res, next) => {
       }
 
       // Upload new QR media image
-      const result = await uploadimage(qrmediaFile.path, "QRMediaImages",QrImageHeight, QrImageWidth);
+      const result = await uploadimage(qrmediaFile.path, "QRMediaImages", QrImageHeight, QrImageWidth);
       if (result) {
         updatedInfo.receiverDetails.media = result.secure_url;
       } else {
@@ -108,13 +108,24 @@ const editForm = async (req, res, next) => {
     }
 
     // Perform the update operation
-    const updatedForm = await prisma.form.update({
-      where: { id: formId },
-      data: {
-        info: updatedInfo,
-        sections: { set: JSON.parse(sections) },
-      },
-    });
+    let updatedForm;
+    if (sections) {
+      updatedForm = await prisma.form.update({
+        where: { id: formId },
+        data: {
+          info: updatedInfo,
+          sections: { set: JSON.parse(sections) },
+        },
+      });
+    }
+    else {
+      updatedForm = await prisma.form.update({
+        where: { id: formId },
+        data: {
+          info: updatedInfo
+        },
+      });
+    }
 
     res.json({
       success: true,
