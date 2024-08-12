@@ -9,6 +9,7 @@ node_modules/
 
 # Ignore environment-specific configuration file
 .env
+.env.production
 
 # Ignore editor-specific files
 .vscode/
@@ -17,3 +18,4 @@ node_modules/
 ideation/
 
 createuser.js
+
