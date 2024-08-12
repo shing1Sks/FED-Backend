@@ -17,12 +17,10 @@ RUN npm install --production
 # Copy the rest of the application code
 COPY . .
 
-# Run Prisma commands after npm install
-RUN npx prisma generate
-RUN npx prisma db push
-
 # Expose the port specified in your environment variable
 EXPOSE 5000
 
 # Use the environment variable for the port in your command
-CMD ["node", "index.js"]
+RUN chmod +x ./build.sh
+
+CMD ["./build.sh"]
