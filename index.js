@@ -72,7 +72,7 @@ app.use(jsonParseErrorHandler);
 app.use(errorHandler);
 
 app.use('/',(req,res) => {
-    res.send(`FED-Backend listening to PORT -> ${PORT}`);
+    res.sendStatus(404);
 })
 // Start server
 app.listen(PORT, () => {
