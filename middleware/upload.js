@@ -16,7 +16,7 @@ const imageStorage = multer.diskStorage({
       prefix = `2-paymentScreenshot-${req.user.email}-`; // Prefix '2' for document uploads
     } else if (req.originalUrl?.includes("/user/addMember")) {
       prefix = `3-AddMember-${req.body.email}-`; // Prefix '2' for document uploads
-    } else if (req.originalUrl?.includes("/form/addForm") || eq.originalUrl.includes("/form/addEdit")) {
+    } else if (req.originalUrl?.includes("/form/addForm") || req.originalUrl.includes("/form/addEdit")) {
       prefix = `4-FormImages-${req.body.email}-`; // Prefix '2' for document uploads
     } else {
       prefix = "0"; // Default prefix
