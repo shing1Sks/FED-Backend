@@ -31,6 +31,10 @@ const addMember = expressAsyncHandler(async (req, res, next) => {
         for (let i = 0; i < emails.length; i++) {
             const email = emails[i].trim();
             const name = names[i] ? names[i].trim() : undefined;
+            console.log(email);
+            console.log(name);
+            
+            
             let { password, ...rest } = req.body;
 
             // Attach access type and name (if provided) to the rest object
@@ -38,7 +42,12 @@ const addMember = expressAsyncHandler(async (req, res, next) => {
             if (name) {
                 rest.name = name;
             }
-
+            else{
+                delete rest.name;
+            }
+            if(email){
+                rest.email = email;
+            }
             // Handle image upload if a file is provided
             if (req.file?.path) {
                 if (req.user.img) {
