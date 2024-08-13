@@ -1,0 +1,81 @@
+<!--
+Placeholders:
+- {{eventName}} : Name of the event the user has registered for.
+- {{name}} : Name of the user.
+- {{teamName}} : Name of the team the user has created or joined.
+- {{teamCode}} : Unique code for the team that should be shared with team members.
+-->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Event Registration Confirmation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            color: #333;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .header {
+            text-align: center;
+            padding-bottom: 20px;
+        }
+        .content {
+            padding: 20px;
+            font-size: 16px;
+        }
+        .footer {
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            text-align: center;
+            font-size: 12px;
+            color: #999;
+        }
+        .team-details {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e6f7ff;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .team-details p {
+            margin: 10px 0;
+        }
+        .team-details strong {
+            color: #0066cc;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Registration Successful for {{eventName}}</h1>
+        </div>
+        <div class="content">
+            <p>Hello {{name}},</p>
+            <p>Congratulations! You have successfully registered for the event <strong>{{eventName}}</strong>.</p>
+
+            <div class="team-details">
+                <p><strong>Your Team Name: {{teamName}}</strong></p>
+                <p><strong>Team Code: {{teamCode}}</strong></p>
+            </div>
+
+            <p>Please share this team code with your team members so they can join your team.</p>
+
+            <p style="margin-bottom: 0;">Thank you,</p> 
+            <p style="margin-top: 2px;">FED KIIT Team</p>
+        </div>
+        <div class="footer">
+            <p>If you did not register for this event, please ignore this email or contact support at <a href="mailto:fedkiit+support@gmail.com">fedkiit+support@gmail.com</a>.</p>
+        </div>
+    </div>
+</body>
+</html>

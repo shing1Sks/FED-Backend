@@ -6,6 +6,7 @@ const expressAsyncHandler = require("express-async-handler");
 const { sendMail } = require("../../utils/email/nodeMailer");
 const loadTemplate = require("../../utils/email/loadTemplate");
 const uploadImage = require("../../utils/image/uploadImage");
+const { eventNames } = require("../../config/nodeMailer");
 
 const validateCurrentForm = expressAsyncHandler(async (form, user, userSubmittedSections) => {
     const { info, sections, formAnalytics } = form;
@@ -204,8 +205,8 @@ const addRegistration = expressAsyncHandler(async (req, res, next) => {
             else {
                 return next(new ApiError(400, "Kindly Attach Payment Screenshot"));
             }
-        }else if(paymentSectionInActualForm && !paymentSection){
-            return next(new ApiError(400,"Kindly fill the Payment section"));
+        } else if (paymentSectionInActualForm && !paymentSection) {
+            return next(new ApiError(400, "Kindly fill the Payment section"));
         }
 
         console.log(sectionsObject)
@@ -294,32 +295,26 @@ const addRegistration = expressAsyncHandler(async (req, res, next) => {
         // )
 
 
-        let textContent;
-        let subject;
+        const subject = `Successfully registered on ${info.eventTitle}`;
         let template;
+        const placeholders = {
+            eventName: info.eventTitle?info.eventTitle:"",
+            teamName: transaction.registration.teamName?transaction.registration.teamName:"",
+            name: req.user.name?req.user.name:"",
+            teamCode: transaction.registration.teamCode?transaction.registration.teamCode:""
+        }
 
         //take content form the team
         if (info.participationType === "Team") {
 
-
-
-            // textContent = 'Success text content for team event\n '
-            // template = '';
-            // if(joinTeamSection){}
-            // if(createTeamSection){}
+            template = loadTemplate('teamEventRegistrationSuccess', placeholders);
         }
         else {
-            // textContent = 'Success text content for team event\n '
-            // template = ;
+            template = loadTemplate('individualEventRegistrationSuccess',placeholders);
 
         }
         // const textContent = `Registration successfull in ${info.eventTitle}`;
-        sendMail(
-            req.user.email,
-            `Registration successfull in ${info.eventTitle}`,
-            null,
-            info.successMessage
-        );
+        sendMail(req.user.email, subject, template);
     }
     catch (error) {
         console.error("Error during registration:", error);
