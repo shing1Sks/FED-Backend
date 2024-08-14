@@ -45,6 +45,7 @@ const addRegistration = expressAsyncHandler(async (req, res, next) => {
     sections = JSON.parse(sections);
     console.log("un-filtered sections", sections);
 
+
     // Filter out null values from sections
     sections = sections.filter(section => section !== null);
     console.log("filtered sections", sections);
@@ -75,6 +76,7 @@ const addRegistration = expressAsyncHandler(async (req, res, next) => {
         let createTeamSection;
         let joinTeamSection;
         let teamExists;
+        let formTrackerTeamNameList = [];
 
         if (relatedEvent && relatedEvent !== "null" && relatedEvent !== null) {
             relatedEventForm = await prisma.form.findUnique({
@@ -144,7 +146,6 @@ const addRegistration = expressAsyncHandler(async (req, res, next) => {
                                 formId: _id,
                                 teamCode: teamCodeField.value
                             }
-
                         },
                     });
 
@@ -163,12 +164,18 @@ const addRegistration = expressAsyncHandler(async (req, res, next) => {
 
 
                     teamName = [teamExists.teamName];
+                    // console.log("team name array joining creating team", teamName)
+                    // teamName = [...new Set([...teamName, ...(form.formAnalytics?.length > 0 ? form.formAnalytics[0].regTeamNames : [])])];
+                    console.log("team name before ", teamName)
+                    console.log("existing team names", form.formAnalytics?.length > 0 ? form.formAnalytics[0].regTeamNames : []);
 
-                    teamName = [...new Set([...teamName, ...(form?.formAnalytics.length > 0 ? form.formAnalytics[0].regTeamNames : [])])];
+                    // console.log("Team name array after joining team")
 
                     teamCode = teamCodeField.value;
                     regTeamMemEmails = [...teamExists.regTeamMemEmails, req.user.email];
                 }
+
+
                 // sections.user_id = req.user.id;
                 // sections.user_email = req.user.email;
                 // sections.user_name = req.user.name;
@@ -176,8 +183,12 @@ const addRegistration = expressAsyncHandler(async (req, res, next) => {
 
                 // sectionsObject.push({ sections });
             }
-            console.log("reg team members ", regTeamMemEmails)
+
         }
+
+        formTrackerTeamNameList = [...new Set([...teamName, ...(form.formAnalytics?.length > 0 ? form.formAnalytics[0].regTeamNames : [])])];
+        console.log("set data ", formTrackerTeamNameList);
+        console.log("reg team members ", regTeamMemEmails)
 
         const paymentSection = sections.find(section => section.name === "Payment Details");
         const paymentSectionInActualForm = form.sections.find(section => section.name === "Payment Details")
@@ -263,7 +274,7 @@ const addRegistration = expressAsyncHandler(async (req, res, next) => {
                     regUserEmails: {
                         push: req.user.email
                     },
-                    regTeamNames: { set: teamName },
+                    regTeamNames: { set: formTrackerTeamNameList },
                     totalRegistrationCount: {
                         increment: 1
                     }
@@ -271,7 +282,7 @@ const addRegistration = expressAsyncHandler(async (req, res, next) => {
                 create: {
                     formId: _id,
                     regUserEmails: [req.user.email],
-                    regTeamNames: { set: teamName },
+                    regTeamNames: { set: formTrackerTeamNameList },
                     totalRegistrationCount: 1
                 }
             });
@@ -283,7 +294,7 @@ const addRegistration = expressAsyncHandler(async (req, res, next) => {
         console.log(transaction.updatedUser);
         console.log("regTracker", transaction.updateFormRegistrationList);
 
-        res.json({ message: form.info.successMessage || "Registration successful", teamName: transaction.registration.teamName, teamCode: transaction.registration.teamCode, user : transaction.updatedUser });
+        res.json({ message: form.info.successMessage || "Registration successful", teamName: transaction.registration.teamName, teamCode: transaction.registration.teamCode, user: transaction.updatedUser });
         // const placeholder = {
         //     name: req.user.email,
         //     successMessage: info.successMessage
@@ -297,10 +308,10 @@ const addRegistration = expressAsyncHandler(async (req, res, next) => {
         const subject = `Successfully registered on ${info.eventTitle}`;
         let template;
         const placeholders = {
-            eventName: info.eventTitle?info.eventTitle:"",
-            teamName: transaction.registration.teamName?transaction.registration.teamName:"",
-            name: req.user.name?req.user.name:"",
-            teamCode: transaction.registration.teamCode?transaction.registration.teamCode:""
+            eventName: info.eventTitle ? info.eventTitle : "",
+            teamName: transaction.registration.teamName ? transaction.registration.teamName : "",
+            name: req.user.name ? req.user.name : "",
+            teamCode: transaction.registration.teamCode ? transaction.registration.teamCode : ""
         }
 
         //take content form the team
@@ -309,7 +320,7 @@ const addRegistration = expressAsyncHandler(async (req, res, next) => {
             template = loadTemplate('teamEventRegistrationSuccess', placeholders);
         }
         else {
-            template = loadTemplate('individualEventRegistrationSuccess',placeholders);
+            template = loadTemplate('individualEventRegistrationSuccess', placeholders);
 
         }
         // const textContent = `Registration successfull in ${info.eventTitle}`;
