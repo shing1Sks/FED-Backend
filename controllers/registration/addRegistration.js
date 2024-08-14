@@ -6,7 +6,6 @@ const expressAsyncHandler = require("express-async-handler");
 const { sendMail } = require("../../utils/email/nodeMailer");
 const loadTemplate = require("../../utils/email/loadTemplate");
 const uploadImage = require("../../utils/image/uploadImage");
-const { eventNames } = require("../../config/nodeMailer");
 
 const validateCurrentForm = expressAsyncHandler(async (form, user, userSubmittedSections) => {
     const { info, sections, formAnalytics } = form;
@@ -70,7 +69,7 @@ const addRegistration = expressAsyncHandler(async (req, res, next) => {
 
         const { info } = form;
         const { relatedEvent } = info;
-        let teamName = [req.user.email];
+        let teamName = [req.user.email.toUpperCase()];
         let teamCode = req.user.email;
         let relatedEventForm = null;
         let createTeamSection;
@@ -127,7 +126,7 @@ const addRegistration = expressAsyncHandler(async (req, res, next) => {
             if (createTeamSection) {
                 const teamNameField = createTeamSection.fields.find(field => field.name === "Team Name");
                 if (teamNameField) {
-                    teamName = [teamNameField.value];
+                    teamName = [teamNameField.value.toUpperCase().trim()];
                     if (form.formAnalytics[0]?.regTeamNames.includes(teamName[0])) {
                         return next(new ApiError(400, "! This team name already taken !\n Please choose a different one."));
                     }
@@ -272,7 +271,7 @@ const addRegistration = expressAsyncHandler(async (req, res, next) => {
                 create: {
                     formId: _id,
                     regUserEmails: [req.user.email],
-                    regTeamNames: teamName ? { set: teamName } : [],
+                    regTeamNames: { set: teamName },
                     totalRegistrationCount: 1
                 }
             });
@@ -284,7 +283,7 @@ const addRegistration = expressAsyncHandler(async (req, res, next) => {
         console.log(transaction.updatedUser);
         console.log("regTracker", transaction.updateFormRegistrationList);
 
-        res.json({ message: form.info.successMessage || "Registration successful", teamName: transaction.registration.teamName, teamCode: transaction.registration.teamCode });
+        res.json({ message: form.info.successMessage || "Registration successful", teamName: transaction.registration.teamName, teamCode: transaction.registration.teamCode, user : transaction.updatedUser });
         // const placeholder = {
         //     name: req.user.email,
         //     successMessage: info.successMessage

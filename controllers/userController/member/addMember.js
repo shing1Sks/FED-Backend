@@ -14,10 +14,13 @@ const addMember = expressAsyncHandler(async (req, res, next) => {
     console.log("add member controller called");
 
     try {
+
         // Validate request
         if (!req.body.email || !req.body.access) {
             return next(new ApiError(400, "Email and access are required"));
         }
+        let { password , ...rest} = req.body;
+
 
         // Handle CSV or non-CSV inputs for email and name
         const emails = req.body.email.includes(',') ? req.body.email.split(',') : [req.body.email];
@@ -33,13 +36,13 @@ const addMember = expressAsyncHandler(async (req, res, next) => {
         if (req.file?.path) {
             console.log("File is ", req.file)
 
-            if(req.file.size > 700*1024){
-                 fs.unlinkSync(req.file.path);
-                return next(new ApiError(400,"Image size cannot be more than 700kb."));
+            if (req.file.size > 700 * 1024) {
+                fs.unlinkSync(req.file.path);
+                return next(new ApiError(400, "Image size cannot be more than 700kb."));
 
             }
 
-            
+
             const existingUser = await prisma.user.findUnique({
                 where: {
                     email: emails[0]
@@ -48,59 +51,57 @@ const addMember = expressAsyncHandler(async (req, res, next) => {
             const deletedImage = await deleteImage(existingUser.img, 'MemberImages');
             console.log(deletedImage);
 
-            for (let i = 0; i < emails.length; i++) {
-                const email = emails[i].trim();
-                const name = names[i] ? names[i].trim() : undefined;
-                console.log(email);
-                console.log(name);
+            const result = await uploadImage(req.file.path, 'MemberImages');
+            console.log("result from cloudinary: ", result);
 
+            if (result) {
+                rest.img = result.secure_url;
+            }
 
-                let { password, ...rest } = req.body;
+        }
 
-                // Attach access type and name (if provided) to the rest object
-                rest.access = accessType;
-                if (name) {
-                    rest.name = name;
+        for (let i = 0; i < emails.length; i++) {
+            const email = emails[i].trim();
+            const name = names[i] ? names[i].trim() : undefined;
+            console.log(email);
+            console.log(name);
+               
+            // Attach access type and name (if provided) to the rest object
+            rest.access = accessType;
+            if (name) {
+                rest.name = name;
+            }
+            else {
+                delete rest.name;
+            }
+            if (email) {
+                rest.email = email;
+            }
+
+            // Parse extra JSON if provided
+            try {
+                rest.extra = req.body.extra ? JSON.parse(req.body.extra) : {};
+            } catch (error) {
+                console.error('Error parsing JSON:', error);
+                return next(new ApiError(400, 'Invalid JSON format in request body', error));
+            }
+
+            // Create or update the user
+            try {
+                const updatedUser = await createOrUpdateUser({ email: email }, rest);
+                delete updatedUser.password; // Remove password from the response
+                updatedUsers.push(updatedUser);
+            } catch (error) {
+                console.error('Error updating user:', error);
+
+                // Handle specific Prisma errors
+                if (error.code === 'P2002') {
+                    return next(new ApiError(400, 'Invalid request format', error));
                 }
-                else {
-                    delete rest.name;
-                }
-                if (email) {
-                    rest.email = email;
-                }
-
-                const result = await uploadImage(req.file.path, 'MemberImages');
-                console.log("result from cloudinary: ", result);
-
-                if (result) {
-                    rest.img = result.secure_url;
-                }
-
-
-                // Parse extra JSON if provided
-                try {
-                    rest.extra = req.body.extra ? JSON.parse(req.body.extra) : {};
-                } catch (error) {
-                    console.error('Error parsing JSON:', error);
-                    return next(new ApiError(400, 'Invalid JSON format in request body', error));
-                }
-
-                // Create or update the user
-                try {
-                    const updatedUser = await createOrUpdateUser({ email: email }, rest);
-                    delete updatedUser.password; // Remove password from the response
-                    updatedUsers.push(updatedUser);
-                } catch (error) {
-                    console.error('Error updating user:', error);
-
-                    // Handle specific Prisma errors
-                    if (error.code === 'P2002') {
-                        return next(new ApiError(400, 'Invalid request format', error));
-                    }
-                    return next(new ApiError(500, 'Error updating user', error));
-                }
+                return next(new ApiError(500, 'Error updating user', error));
             }
         }
+
 
         // Return the response for all updated users
         res.status(200).json({ message: 'Users updated successfully', users: updatedUsers });
