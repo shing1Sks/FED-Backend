@@ -54,7 +54,11 @@ const createUser = async (data, sendMailFlag = false) => {
             } else {
                 // Send email to the newly registered user
                 templateName = "newUserRegistration";
+<<<<<<< HEAD
                 placeholders = { name: user.name };
+=======
+                placeholders = { name: user.name || " " };
+>>>>>>> docker/test
             }
 
             const templateContent = loadTemplate(templateName, placeholders);

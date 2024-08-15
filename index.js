@@ -39,6 +39,31 @@ app.use(cors("*"))
 //         "Origin, X-Requested-With, Content-Type, Accept, Authorization"
 //     );
 
+// app.use(cors({
+//   origin: /^https:\/\/.*\.fedkiit\.com$/
+// }));
+// app.options('*', cors()); 
+app.use(cors("*"))
+// app.use(cors({
+//     origin: '*',
+//     credentials: true,
+//     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+//     allowedHeaders: ['Content-Type', 'Authorization','multipart/form-data'],
+// }));
+// // app.use((req, res, next) => {
+//     res.setHeader('Access-Control-Allow-Origin', '*');
+//     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+//     res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type,Authorization, multipart/form-data');
+//     res.setHeader('Access-Control-Allow-Credentials', true);
+//     next();
+// });
+// app.use((req, res, next) => {
+//     res.setHeader("Access-Control-Allow-Origin", "*");
+//     res.setHeader(
+//         "Access-Control-Allow-Headers",
+//         "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+//     );
+
 //     next();
 // });
 

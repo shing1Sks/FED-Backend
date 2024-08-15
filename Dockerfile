@@ -23,4 +23,8 @@ EXPOSE 5000
 # Use the environment variable for the port in your command
 RUN chmod +x ./build.sh
 
+<<<<<<< HEAD
 CMD ["./build.sh"]
+=======
+CMD ["./build.sh"]
+>>>>>>> docker/test

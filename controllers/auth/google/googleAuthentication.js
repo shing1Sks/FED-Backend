@@ -28,9 +28,9 @@ const googleAuth = expressAsyncHandler(async (req, res, next) => {
             `https://www.googleapis.com/oauth2/v3/userinfo?access_token=${access_token}`
         );
 
-        // console.log("Google response:", googleResponse.data);
+        console.log("Google response:", googleResponse.data);
 
-        const { email, given_name, family_name, picture, hd } = googleResponse.data;
+        const { email, name, given_name, family_name, picture, hd } = googleResponse.data;
 
 
         let user = await prisma.user.findUnique({
@@ -40,7 +40,7 @@ const googleAuth = expressAsyncHandler(async (req, res, next) => {
         if (!user) {
             // If user not found, register the user
             let data = {
-                name: given_name + " " + family_name,
+                name : (given_name ? given_name + " " : "") + (family_name ? family_name : "") || name,
                 email,
                 img: picture,
             };
