@@ -54,7 +54,7 @@ const createUser = async (data, sendMailFlag = false) => {
             } else {
                 // Send email to the newly registered user
                 templateName = "newUserRegistration";
-                placeholders = { name: user.name };
+                placeholders = { name: user.name || " " };
             }
 
             const templateContent = loadTemplate(templateName, placeholders);

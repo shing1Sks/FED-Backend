@@ -1,8 +1,7 @@
 const upload = require('../../middleware/upload');
 const expressAsyncHandler = require('express-async-handler');
 const { ApiError } = require('../../utils/error/ApiError');
-const uploadimage = require('../../utils/image/uploadImage')
-
+const uploadImage = require('../../utils/image/uploadImage')
 const deleteImage = require('../../utils/image/deleteImage');
 const updateUser = require('../../utils/user/updateUser');
 
@@ -25,12 +24,16 @@ const editProfileImage = expressAsyncHandler(async (req, res, next) => {
         //delete the existing image
         if (req.user.img) {
             try {
+                if (req.file.size > 700 * 1024) {
+                    fs.unlinkSync(req.file.path);
+                    return next(new ApiError(400, "Image size cannot be more than 700kb."));
+                }
 
                 const result = await deleteImage(req.user.img, 'MemberImages')
-                if(!result){
+                if (!result) {
                     console.log("Could not delete image : ", req.uer.img);
                 }
-                else{
+                else {
                     console.log("Image deleted successfully ")
                 }
             } catch (error) {
@@ -39,7 +42,7 @@ const editProfileImage = expressAsyncHandler(async (req, res, next) => {
 
         }
         // Upload the new image to cloudinary
-        const result = await uploadimage(req.file.path, 'MemberImages')
+        const result = await uploadImage(req.file.path, 'MemberImages')
         console.log("result from cloudinary : ", result)
 
         res.status(200).json({

@@ -1,0 +1,65 @@
+<!--
+Placeholders:
+- {{eventName}} : Name of the event the user has registered for.
+- {{name}} : Name of the user.
+-->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Event Registration Confirmation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            color: #333;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .header {
+            text-align: center;
+            padding-bottom: 20px;
+        }
+        .content {
+            padding: 20px;
+            font-size: 16px;
+            color: #333; /* Ensure consistent text color */
+        }
+        .content p {
+            margin: 0;
+            padding: 0;
+        }
+        .footer {
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            text-align: center;
+            font-size: 12px;
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Registration Successful for {{eventName}}</h1>
+        </div>
+        <div class="content">
+            <p>Hello {{name}},</p>
+            <p>Congratulations! You have successfully registered for the event <strong>{{eventName}}</strong>.</p>
+            <p>We are excited to have you participate and look forward to seeing you at the event.</p>
+            <p style="color: #333;">Our team will verify the payment details provided by you during registration and send a confirmation mail. Please proceed with registering and participating by creating teams in the unlocked events.</p>
+            <p style="margin-bottom: 0; color: #333;">Thank you,</p> 
+            <p style="margin-top: 2px; color: #333;">FED KIIT Team</p>
+        </div>
+        <div class="footer">
+            <p>If you did not register for this event, please ignore this email or contact support at <a href="mailto:fedkiit+support@gmail.com">fedkiit+support@gmail.com</a>.</p>
+        </div>
+    </div>
+</body>
+</html>

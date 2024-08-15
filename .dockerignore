@@ -20,3 +20,4 @@ createuser.js
 
 # Ignore the env
 .env
+.env.production

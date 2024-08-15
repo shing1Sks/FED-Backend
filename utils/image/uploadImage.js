@@ -24,6 +24,7 @@ const uploadImage = async (
     console.log("Image uploaded successfully:", result);
     return result;
   } catch (err) {
+    fs.unlinkSync(filePath);
     console.error("Error while uploading image:", err);
     throw new ApiError(500, "Error while uploading image", err);
   }
