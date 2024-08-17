@@ -48,15 +48,15 @@ const googleAuth = expressAsyncHandler(async (req, res, next) => {
             function getOrdinalYear(year) {
                 switch (year) {
                     case 1:
-                        return '1st year';
+                        return '1st Year';
                     case 2:
-                        return '2nd year';
+                        return '2nd Year';
                     case 3:
-                        return '3rd year';
+                        return '3rd Year';
                     case 4:
-                        return '4th year';
+                        return '4th Year';
                     case 5:
-                        return '5th year';
+                        return '5th Year';
                     default:
                         return `Passout`; // This case should not occur since max is 4th
                 }

@@ -24,7 +24,11 @@ EXPOSE 5000
 RUN chmod +x ./build.sh
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 CMD ["./build.sh"]
 =======
 CMD ["./build.sh"]
 >>>>>>> docker/test
+=======
+CMD ["./build.sh"]
+>>>>>>> main
