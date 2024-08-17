@@ -52,7 +52,11 @@ const analytics = expressAsyncHandler(async (req, res, next) => {
 
       });
       yearCounts = users.reduce((acc, obj) => {
-        acc[obj.year] = (acc[obj.year] || 0) + 1;
+        let year = null;
+        if(obj.year)
+          year=obj.year.split(' ')[0];
+
+        acc[year] = (acc[year] || 0) + 1;
         return acc;
       }, {});
     } catch (error) {
