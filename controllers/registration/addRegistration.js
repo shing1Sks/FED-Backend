@@ -1,4 +1,5 @@
 const { PrismaClient, AccessTypes } = require("@prisma/client");
+    const moment = require('moment-timezone');
 const prisma = new PrismaClient();
 const { ApiError } = require("../../utils/error/ApiError");
 const expressAsyncHandler = require("express-async-handler");
@@ -109,6 +110,8 @@ const addRegistration = expressAsyncHandler(async (req, res, next) => {
             user_name: req.user.name,
             user_id: req.user.id,
             user_email: req.user.email,
+            date_time: moment().tz("Asia/Kolkata").format(),
+            amount : form?.info?.eventAmount || '0',
             sections: sections
         };
         console.log("sections Object : ", sectionsObject)

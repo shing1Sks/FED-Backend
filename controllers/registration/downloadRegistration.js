@@ -10,10 +10,12 @@ const flattenObject = (obj, prefix = '') => {
     Object.keys(obj).forEach(key => {
         const value = obj[key];
         const newKey = prefix ? `${prefix}_${key}` : key;
+        
 
         if (typeof value === 'object' && value !== null) {
             if (Array.isArray(value)) {
                 value.forEach((item, index) => {
+                    console.log("value inside Array.isArray if:",value);
                     Object.assign(result, flattenObject(item, `${newKey}_${index + 1}`));
                 });
             } else {
@@ -39,6 +41,9 @@ const downloadRegistration = expressAsyncHandler(async (req, res, next) => {
         const formData = await prisma.formRegistration.findMany({
             where: { formId: formId }
         });
+
+        console.log("form data", formData);
+        
 
         if (!formData || formData.length === 0) {
             return next(new Error('Form data not found'));
