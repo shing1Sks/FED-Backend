@@ -49,9 +49,9 @@ const imageUpload = multer({
     console.log(`Image file rejected: ${file.originalname}`);
     cb(new Error("Only image files are allowed"));
   },
-  limits: {
-    fileSize: 1024 * 1024 * 10,
-  },
+  // limits: {
+  //   fileSize: 1024 * 1024 * 10,
+  // },
 });
 
 // Configuration for Excel files
@@ -70,9 +70,9 @@ const excelUpload = multer({
   fileFilter: function (req, file, cb) {
     cb(null, true); // Accept any file type
   },
-  limits: {
-    fileSize: 1024 * 1024 * 10, // Limit file size to 10MB
-  },
+  // limits: {
+  //   fileSize: 1024 * 1024 * 20, // Limit file size to 20MB
+  // },
 });
 
 module.exports = { imageUpload, excelUpload };
