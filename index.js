@@ -65,6 +65,7 @@ app.use(bodyParser.json());
 if (process.env.LOG_REQ === "true") {
     app.use(logRequestBody);
 }
+app.use(logRequestBody);
 
 // Routes
 app.use('/api', require('./routes/api/index'));
