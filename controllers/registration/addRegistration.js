@@ -313,7 +313,8 @@ const addRegistration = expressAsyncHandler(async (req, res, next) => {
             eventName: info.eventTitle ? info.eventTitle : "",
             teamName: transaction.registration.teamName ? transaction.registration.teamName : "",
             name: req.user.name ? req.user.name : "",
-            teamCode: transaction.registration.teamCode ? transaction.registration.teamCode : ""
+            teamCode: transaction.registration.teamCode ? transaction.registration.teamCode : "",
+            successMessage: info.successMessage
         }
 
         //take content form the team
