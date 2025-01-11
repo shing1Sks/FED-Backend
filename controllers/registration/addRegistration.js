@@ -117,7 +117,7 @@ const addRegistration = expressAsyncHandler(async (req, res, next) => {
 
         if (info.participationType !== "Individual") {
 
-            console.log("related", relatedEventForm.info.eventTitle)
+            console.log("related", relatedEventForm?.info?.eventTitle)
             console.log("eventTitle", info.eventTitle)
             console.log("count", form.formAnalytics[0]?.regUserEmails.length);
             teamCode = await generateTeamCode(relatedEventForm.info.eventTitle, info.eventTitle, form.formAnalytics[0]?.regUserEmails.length);
