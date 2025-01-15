@@ -1,0 +1,11 @@
+model Certificate {
+  id        String   @id @default(cuid()) @map("_id")
+  eventId   String
+  template  String
+  fields    Json[]
+  // feilds json will be like [{x,y,fieldName},{x,y,fieldName},.....]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  event Event @relation(fields: [eventId], references: [id])
+}

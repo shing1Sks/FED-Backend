@@ -1,0 +1,12 @@
+model Event {
+    id             String        @id @default(cuid()) @map("_id")
+    name           String
+    description    String
+    organisationId String
+    certificates   Certificate[]
+    attendees      Json[]
+    createdAt      DateTime      @default(now())
+    updatedAt      DateTime      @updatedAt
+
+    organisation Organisation @relation(fields: [organisationId], references: [id])
+}
