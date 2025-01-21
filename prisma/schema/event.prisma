@@ -1,5 +1,5 @@
 model Event {
-    id             String        @id @default(cuid()) @map("_id")
+    id             String        @id @default(auto()) @map("_id") @db.ObjectId
     name           String
     description    String
     organisationId String

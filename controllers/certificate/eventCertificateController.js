@@ -313,7 +313,10 @@ const getEvent = async (req, res) => {
   try {
     const { id } = req.body;
     console.log("Received event ID:", id); // Log to debug
-    const event = await prisma.event.findUnique({ where: { id } });
+    const event = await prisma.event.findUnique({
+      where: { id },
+      include: { certificates: true },
+    });
 
     if (!event) {
       return res.status(404).json({ error: "Event not found" });
@@ -342,6 +345,112 @@ const getCertificateTest = async (req, res) => {
   }
 };
 
+const dummyCertificate = async (req, res) => {
+  let fields;
+
+  try {
+    // Extract and parse fields from form-data
+    if (typeof req.body.fields === "string") {
+      fields = JSON.parse(req.body.fields); // Parse the stringified JSON
+    } else {
+      fields = req.body.fields; // Handle it as JSON (unlikely for form-data but safe)
+    }
+
+    // Validate fields is an array
+    if (!Array.isArray(fields)) {
+      return res
+        .status(400)
+        .json({ error: "Invalid input. 'fields' must be an array." });
+    }
+  } catch (error) {
+    return res.status(400).json({ error: "Invalid JSON format for 'fields'." });
+  }
+
+  const fieldValues = {};
+
+  // Populate dummy values for each field
+  fields.forEach((key) => {
+    fieldValues[key.fieldName] = "Dummy Value";
+  });
+
+  const image = req.file;
+
+  if (!image) {
+    return res.status(400).json({ error: "Template image is required." });
+  }
+
+  try {
+    // Load the template image
+    const templateImage = await loadImage(image.path);
+    const { width, height } = templateImage;
+
+    // Create a canvas
+    const canvas = createCanvas(width, height);
+    const context = canvas.getContext("2d");
+
+    // Draw the template image on the canvas
+    context.drawImage(templateImage, 0, 0, width, height);
+
+    // Iterate over the fields and populate text
+    for (const field of fields) {
+      const {
+        fieldName,
+        x,
+        y,
+        font = "Arial",
+        fontSize = 20,
+        fontColor = "#000000",
+      } = field;
+
+      const value = fieldValues[fieldName];
+
+      if (!value) {
+        console.warn(`Missing value for field: ${fieldName}`);
+        continue;
+      }
+
+      context.font = `${fontSize}px ${font}`;
+      context.fillStyle = fontColor;
+      context.textAlign = "center";
+      context.fillText(value, x, y);
+    }
+
+    // Generate a QR code containing the certificate link
+    const qrCodeData = `${process.env.DOMAIN || "testDomain"}/test`;
+
+    const qrCodeBuffer = await QRCode.toBuffer(qrCodeData, {
+      width: 150,
+      margin: 1,
+    });
+
+    // Draw the QR code on the canvas (bottom-right corner)
+    const qrX = width - 170; // Adjust placement based on canvas dimensions
+    const qrY = height - 170;
+
+    const qrCodeImage = await loadImage(qrCodeBuffer);
+    context.drawImage(qrCodeImage, qrX, qrY, 150, 150);
+
+    // Generate the final image buffer
+    const buffer = canvas.toBuffer("image/png");
+
+    // Save the image locally (for testing)
+    const outputPath = path.resolve(__dirname, `certificate-${Date.now()}.png`);
+    fs.writeFileSync(outputPath, buffer);
+
+    // Convert the buffer to a Base64-encoded image source
+    const base64Image = buffer.toString("base64");
+    const imageSrc = `data:image/png;base64,${base64Image}`;
+
+    // Return the generated image source
+    return res.status(200).json({ imageSrc });
+  } catch (error) {
+    console.error("Error generating the certificate:", error);
+    return res
+      .status(500)
+      .json({ error: "Failed to generate the certificate." });
+  }
+};
+
 module.exports = {
   addCertificateTemplate,
   getCertificate,
@@ -349,4 +458,5 @@ module.exports = {
   addAttendee,
   getEvent,
   getCertificateTest,
+  dummyCertificate,
 };
