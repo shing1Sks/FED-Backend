@@ -68,7 +68,7 @@ router.get("/getCertificate", getCertificate);
 router.get("/getCertificateTest", getCertificateTest);
 
 //
-router.get("/dummyCertificate", imageUpload.single("image"), dummyCertificate);
+router.post("/dummyCertificate", imageUpload.single("image"), dummyCertificate);
 
 //accidently created 2 paths for createEvent and createOrganisationEvent
 // router.post("/createEvent", createEvent);

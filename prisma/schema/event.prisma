@@ -1,12 +1,13 @@
 model Event {
-    id             String        @id @default(auto()) @map("_id") @db.ObjectId
-    name           String
-    description    String
-    organisationId String
-    certificates   Certificate[]
-    attendees      Json[]
-    createdAt      DateTime      @default(now())
-    updatedAt      DateTime      @updatedAt
+    id                 String               @id @default(auto()) @map("_id") @db.ObjectId
+    name               String
+    description        String
+    organisationId     String
+    certificates       Certificate[]
+    issuedCertificates issuedCertificates[]
+    attendees          Json[]
+    createdAt          DateTime             @default(now())
+    updatedAt          DateTime             @updatedAt
 
     organisation Organisation @relation(fields: [organisationId], references: [id])
 }

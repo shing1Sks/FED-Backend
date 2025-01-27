@@ -103,16 +103,8 @@ const addCertificateTemplate = async (req, res) => {
 };
 
 const getCertificate = async (req, res) => {
-  /// batchsize and page concept currently are not properly implemented !!!!
   try {
-    const { eventId, batchSize, page } = req.body;
-
-    // Ensure page starts from 1
-    if (!page || page < 1) {
-      return res
-        .status(400)
-        .json({ error: "Page must be greater than or equal to 1" });
-    }
+    const { eventId, batchSize } = req.body;
 
     // Validate the event exists
     const event = await prisma.event.findUnique({
@@ -153,7 +145,9 @@ const getCertificate = async (req, res) => {
           if (certificateId) {
             const certificateImageSrc = await generateCertificate(
               certificateId,
-              fieldValues
+              fieldValues,
+              eventId,
+              attendee
               // email,
               // false
             ); // Change `false` to `true` if you want to email certificates
@@ -166,7 +160,7 @@ const getCertificate = async (req, res) => {
           }
         } catch (error) {
           console.error(
-            `Failed to generate certificate for attendee ID: ${attendee.id}`,
+            `Failed to generate certificate for attendee ID: ${attendee}`,
             error.message
           );
           generatedCertificates.push({ attendee, error: error.message });
@@ -190,7 +184,12 @@ const getCertificate = async (req, res) => {
   }
 };
 
-const generateCertificate = async (certificateId, fieldValues) => {
+const generateCertificate = async (
+  certificateId,
+  fieldValues,
+  eventId,
+  attendee
+) => {
   try {
     // Fetch the certificate template
     const certificate = await prisma.certificate.findUnique({
@@ -206,6 +205,61 @@ const generateCertificate = async (certificateId, fieldValues) => {
     if (!fields || !Array.isArray(fields)) {
       throw new Error("Invalid or missing fields in certificate template");
     }
+
+    //remove attendee from attendees array from event schema
+    const event = await prisma.event.findUnique({
+      where: { id: eventId },
+    });
+
+    if (!event) {
+      throw new Error("Event not found");
+    }
+
+    // Remove the attendee with the specific `id` from the array
+    const updatedAttendees = event.attendees.filter((attendeeVal) => {
+      return (
+        attendeeVal?.fieldValues?.email &&
+        attendeeVal.fieldValues.email !== attendee?.fieldValues?.email
+      );
+    });
+
+    // Update the `attendees` field in the database
+    await prisma.event.update({
+      where: { id: eventId },
+      data: {
+        attendees: updatedAttendees,
+      },
+    });
+
+    if (!certificateId || !eventId || !fieldValues || !fieldValues.email) {
+      throw new Error("Missing required data for creating issuedCertificate");
+    }
+
+    console.log("Certificate ID:", certificateId);
+    console.log("Event ID:", eventId);
+    console.log("Field Values:", fieldValues);
+    console.log("Certificate Fields:", fields);
+
+    //add the attendee to the issuedcertificates schema
+    const issuedCertificate = await prisma.issuedCertificates.create({
+      data: {
+        certificateId,
+        eventId,
+        email: fieldValues.email || "unknown-email",
+        fieldValues: fieldValues,
+        fields,
+      },
+    });
+
+    //push issued certificate to issuedCertificates issuedCertificates[] in event schema
+    await prisma.event.update({
+      where: { id: eventId },
+      data: {
+        issuedCertificates: {
+          connect: { id: issuedCertificate.id },
+        },
+      },
+    });
 
     // Load the template image
     const templateImage = await loadImage(template);
@@ -245,7 +299,7 @@ const generateCertificate = async (certificateId, fieldValues) => {
     // Generate a QR code containing the certificate link
     const qrCodeData = `${
       process.env.DOMAIN || "testDomain"
-    }/certificate?id=${certificateId}`;
+    }/verify/certificate?id=${issuedCertificate.id}`;
 
     const qrCodeBuffer = await QRCode.toBuffer(qrCodeData, {
       width: 150,
@@ -270,9 +324,14 @@ const generateCertificate = async (certificateId, fieldValues) => {
     const base64Image = buffer.toString("base64");
     const imageSrc = `data:image/png;base64,${base64Image}`;
 
+    await prisma.issuedCertificates.update({
+      where: { id: issuedCertificate.id },
+      data: { imageSrc },
+    });
+
     return imageSrc;
   } catch (error) {
-    console.error("Error generating certificate:", error.message);
+    console.error("Error generating certificate:", error);
     throw error;
   }
 };
@@ -315,7 +374,7 @@ const getEvent = async (req, res) => {
     console.log("Received event ID:", id); // Log to debug
     const event = await prisma.event.findUnique({
       where: { id },
-      include: { certificates: true },
+      include: { certificates: true, issuedCertificates: true },
     });
 
     if (!event) {
