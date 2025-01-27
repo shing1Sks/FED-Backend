@@ -510,6 +510,25 @@ const dummyCertificate = async (req, res) => {
   }
 };
 
+const getEventByFormId = async (req, res) => {
+  const formId = req.body.formId.trim();
+
+  const event = await prisma.event.findFirst({
+    where: {
+      formId: formId, // Only events with this formId will be found
+    },
+    include: { certificates: true, issuedCertificates: true },
+  });
+
+  if (!event) {
+    return res
+      .status(404)
+      .json({ message: "No event found for the given formId" });
+  }
+
+  res.status(200).json(event);
+};
+
 module.exports = {
   addCertificateTemplate,
   getCertificate,
@@ -518,4 +537,5 @@ module.exports = {
   getEvent,
   getCertificateTest,
   dummyCertificate,
+  getEventByFormId,
 };
