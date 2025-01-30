@@ -10,6 +10,7 @@ const {
   getCertificateTest,
   dummyCertificate,
   getEventByFormId,
+  sendBatchMails,
 } = require("../../../controllers/certificate/eventCertificateController.js");
 const {
   getOrganisations,
@@ -67,12 +68,12 @@ router.post(
 router.get("/getCertificate", getCertificate);
 //checked this route only returns the data stored in certifcate schema !
 router.get("/getCertificateTest", getCertificateTest);
-
 //checked
 router.post("/dummyCertificate", imageUpload.single("image"), dummyCertificate);
-
-//
+//checked
 router.post("/getEventByFormId", getEventByFormId);
+//
+router.post("/sendBatchMails", sendBatchMails);
 
 //accidently created 2 paths for createEvent and createOrganisationEvent
 // router.post("/createEvent", createEvent);

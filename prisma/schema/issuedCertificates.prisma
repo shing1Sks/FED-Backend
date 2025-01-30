@@ -7,6 +7,7 @@ model issuedCertificates {
     // feilds json will be like [{x,y,fieldName},{x,y,fieldName},.....]
     fieldValues   Json
     imageSrc      String?
+    mailed        Boolean @default(false)
 
     event       Event        @relation(fields: [eventId], references: [id])
     Certificate Certificate? @relation(fields: [certificateId], references: [id])
