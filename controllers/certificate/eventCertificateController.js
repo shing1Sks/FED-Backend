@@ -565,7 +565,7 @@ const getEventByFormId = async (req, res) => {
     });
 
     if (!event) {
-      return res.status(404).json({ message: "No event found for the given formId" });
+      return res.status(200).json({ message: "No event found for the given formId" });
     }
 
     return res.status(200).json(event);
@@ -574,10 +574,10 @@ const getEventByFormId = async (req, res) => {
 
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       // Handle specific Prisma errors if necessary
-      return res.status(500).json({ error: "Database query error" });
+      return res.status(200).json({ message: "Database query error" });
     }
 
-    return res.status(500).json({ error: "Internal server error" });
+    return res.status(200).json({ message: "Internal server error" });
   }
 };
 
