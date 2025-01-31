@@ -1,4 +1,4 @@
-const { PrismaClient } = require("@prisma/client");
+const { PrismaClient,Prisma } = require("@prisma/client");
 const prisma = new PrismaClient();
 const uploadImage = require("../../utils/image/uploadImage");
 const fs = require("fs");
@@ -325,9 +325,9 @@ const generateCertificate = async (
     // Generate the final image buffer
     const buffer = canvas.toBuffer("image/png");
 
-    //saving image locally only for testing should resolve this
-    const outputPath = path.resolve(__dirname, `certificate-${Date.now()}.png`);
-    fs.writeFileSync(outputPath, buffer);
+    // //saving image locally only for testing should resolve this
+    // const outputPath = path.resolve(__dirname, `certificate-${Date.now()}.png`);
+    // fs.writeFileSync(outputPath, buffer);
 
     // Convert the buffer to a Base64-encoded image source
     const base64Image = buffer.toString("base64");
@@ -489,19 +489,20 @@ const dummyCertificate = async (req, res) => {
         fontSize = 40,
         fontColor = "#000000",
       } = field;
-
+      
+      let value;
       if (fieldName === "qr") {
         qrX = x;
         qrY = y;
       }
-
-      const value = fieldValues[fieldName];
-
+      else{
+        value = fieldValues[fieldName];
+      
       if (!value) {
         console.warn(`Missing value for field: ${fieldName}`);
         continue;
       }
-
+    }
       context.font = `${fontSize}px ${font}`;
       context.fillStyle = fontColor;
       context.textAlign = "center";
@@ -533,9 +534,9 @@ const dummyCertificate = async (req, res) => {
     // Generate the final image buffer
     const buffer = canvas.toBuffer("image/png");
 
-    // Save the image locally (for testing)
-    const outputPath = path.resolve(__dirname, `certificate-${Date.now()}.png`);
-    fs.writeFileSync(outputPath, buffer);
+    // // Save the image locally (for testing)
+    // const outputPath = path.resolve(__dirname, `certificate-${Date.now()}.png`);
+    // fs.writeFileSync(outputPath, buffer);
 
     // Convert the buffer to a Base64-encoded image source
     const base64Image = buffer.toString("base64");
@@ -550,24 +551,34 @@ const dummyCertificate = async (req, res) => {
       .json({ error: "Failed to generate the certificate." });
   }
 };
-
 const getEventByFormId = async (req, res) => {
-  const formId = req.body.formId.trim();
+  try {
+    const formId = req.body.formId?.trim();
 
-  const event = await prisma.event.findFirst({
-    where: {
-      formId: formId, // Only events with this formId will be found
-    },
-    include: { certificates: true, issuedCertificates: true },
-  });
+    if (!formId) {
+      return res.status(400).json({ error: "Form ID is required" });
+    }
 
-  if (!event) {
-    return res
-      .status(404)
-      .json({ message: "No event found for the given formId" });
+    const event = await prisma.event.findFirst({
+      where: { formId },
+      include: { certificates: true, issuedCertificates: true },
+    });
+
+    if (!event) {
+      return res.status(404).json({ message: "No event found for the given formId" });
+    }
+
+    return res.status(200).json(event);
+  } catch (error) {
+    console.error("Error fetching event:", error);
+
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      // Handle specific Prisma errors if necessary
+      return res.status(500).json({ error: "Database query error" });
+    }
+
+    return res.status(500).json({ error: "Internal server error" });
   }
-
-  res.status(200).json(event);
 };
 
 const sendBatchMails = async (req, res) => {
