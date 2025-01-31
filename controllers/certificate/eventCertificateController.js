@@ -6,6 +6,7 @@ const path = require("path");
 const QRCode = require("qrcode");
 const { loadImage, createCanvas } = require("canvas");
 const { count } = require("console");
+const { sendMail } = require("../../utils/email/nodeMailer");
 
 const createEvent = async (req, res) => {
   try {
@@ -272,6 +273,8 @@ const generateCertificate = async (
     // Draw the template image on the canvas
     context.drawImage(templateImage, 0, 0, width, height);
 
+
+    let 
     // Iterate over the fields and populate text
     for (const field of fields) {
       const {
@@ -279,11 +282,16 @@ const generateCertificate = async (
         x,
         y,
         font = "Arial",
-        fontSize = 20,
+        fontSize = 40,
         fontColor = "#000000",
       } = field;
 
       const value = fieldValues[fieldName];
+
+      if (fieldName === "qr") {
+        qrX = x;
+        qrY = y;
+      }
 
       if (!value) {
         console.warn(`Missing value for field: ${fieldName}`);
@@ -293,7 +301,8 @@ const generateCertificate = async (
       context.font = `${fontSize}px ${font}`;
       context.fillStyle = fontColor;
       context.textAlign = "center";
-      context.fillText(value, x, y);
+      // context.fillText(value, x, y);
+      context.fillText(value, (x / 100) * width, (y / 100) * height);
     }
 
     // Generate a QR code containing the certificate link
@@ -306,12 +315,12 @@ const generateCertificate = async (
       margin: 1,
     });
 
-    // Draw the QR code on the canvas (bottom-right corner)
-    const qrX = width - 170; // Adjust placement based on canvas dimensions
-    const qrY = height - 170;
+    // // Draw the QR code on the canvas (bottom-right corner)
+    // const qrX = width - 170; // Adjust placement based on canvas dimensions
+    // const qrY = height - 170;
 
     const qrCodeImage = await loadImage(qrCodeBuffer);
-    context.drawImage(qrCodeImage, qrX, qrY, 150, 150);
+    context.drawImage(qrCodeImage, qrX || width - 170, qrY || height - 170, 150, 150);
 
     // Generate the final image buffer
     const buffer = canvas.toBuffer("image/png");
@@ -333,6 +342,23 @@ const generateCertificate = async (
   } catch (error) {
     console.error("Error generating certificate:", error);
     throw error;
+  }
+};
+
+const getVerifyCertficate = async (req, res) => {
+  const { issuedCertificate } = req.body;
+
+  try {
+    const certificate = await prisma.issuedCertificates.findUnique({
+      where: { id: issuedCertificate },
+    });
+    if (!certificate) {
+      return res.status(404).json({ error: "Certificate not found" });
+    }
+    res.json(certificate);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
   }
 };
 
@@ -429,7 +455,7 @@ const dummyCertificate = async (req, res) => {
 
   // Populate dummy values for each field
   fields.forEach((key) => {
-    fieldValues[key.fieldName] = "Dummy Value";
+    fieldValues[key.fieldName] = `Dummy ${key.fieldName}`;
   });
 
   const image = req.file;
@@ -450,6 +476,9 @@ const dummyCertificate = async (req, res) => {
     // Draw the template image on the canvas
     context.drawImage(templateImage, 0, 0, width, height);
 
+    let qrX;
+    let qrY;
+
     // Iterate over the fields and populate text
     for (const field of fields) {
       const {
@@ -457,9 +486,14 @@ const dummyCertificate = async (req, res) => {
         x,
         y,
         font = "Arial",
-        fontSize = 20,
+        fontSize = 40,
         fontColor = "#000000",
       } = field;
+
+      if (fieldName === "qr") {
+        qrX = x;
+        qrY = y;
+      }
 
       const value = fieldValues[fieldName];
 
@@ -471,7 +505,8 @@ const dummyCertificate = async (req, res) => {
       context.font = `${fontSize}px ${font}`;
       context.fillStyle = fontColor;
       context.textAlign = "center";
-      context.fillText(value, x, y);
+      // context.fillText(value, x, y);
+      context.fillText(value, (x / 100) * width, (y / 100) * height);
     }
 
     // Generate a QR code containing the certificate link
@@ -482,12 +517,18 @@ const dummyCertificate = async (req, res) => {
       margin: 1,
     });
 
-    // Draw the QR code on the canvas (bottom-right corner)
-    const qrX = width - 170; // Adjust placement based on canvas dimensions
-    const qrY = height - 170;
+    // // Draw the QR code on the canvas (bottom-right corner)
+    // const qrX =  || width - 170; // Adjust placement based on canvas dimensions
+    // const qrY = height - 170;
 
     const qrCodeImage = await loadImage(qrCodeBuffer);
-    context.drawImage(qrCodeImage, qrX, qrY, 150, 150);
+    context.drawImage(
+      qrCodeImage,
+      qrX || width - 170,
+      qrY || height - 170,
+      150,
+      150
+    );
 
     // Generate the final image buffer
     const buffer = canvas.toBuffer("image/png");
@@ -510,6 +551,92 @@ const dummyCertificate = async (req, res) => {
   }
 };
 
+const getEventByFormId = async (req, res) => {
+  const formId = req.body.formId.trim();
+
+  const event = await prisma.event.findFirst({
+    where: {
+      formId: formId, // Only events with this formId will be found
+    },
+    include: { certificates: true, issuedCertificates: true },
+  });
+
+  if (!event) {
+    return res
+      .status(404)
+      .json({ message: "No event found for the given formId" });
+  }
+
+  res.status(200).json(event);
+};
+
+const sendBatchMails = async (req, res) => {
+  try {
+    const { batchSize, formId, subject, htmlContent } = req.body;
+
+    const event = await prisma.event.findFirst({
+      where: { formId },
+      include: { issuedCertificates: true },
+    });
+
+    if (!event) {
+      return res.status(404).json({ error: "Event not found" });
+    }
+
+    const certificatesToMail = await prisma.issuedCertificates.findMany({
+      where: { eventId: event.id, mailed: false },
+      take: batchSize,
+    });
+
+    if (certificatesToMail.length === 0) {
+      return res.status(200).json({ message: "No pending emails to send" });
+    }
+
+    for (const cert of certificatesToMail) {
+      try {
+        let attachments = [];
+
+        if (cert.imageSrc && cert.imageSrc.startsWith("data:image")) {
+          const base64Data = cert.imageSrc.split(",")[1]; // Extract base64 data
+          attachments = [
+            {
+              filename: "certificate.png",
+              content: Buffer.from(base64Data, "base64"), // Convert to Buffer
+              encoding: "base64",
+            },
+          ];
+        }
+
+        // Send email with attachment
+        await sendMail(
+          cert.email,
+          subject,
+          htmlContent,
+          htmlContent.replace(/<[^>]+>/g, ""),
+          attachments
+        );
+
+        // Update DB: Mark as mailed
+        await prisma.issuedCertificates.update({
+          where: { id: cert.id },
+          data: { mailed: true },
+        });
+
+        console.log(`Mail sent to ${cert.email}`);
+      } catch (error) {
+        console.error(`Failed to send mail to ${cert.email}:`, error);
+      }
+    }
+
+    res.status(200).json({
+      message: `${certificatesToMail.length} emails sent successfully`,
+    });
+  } catch (error) {
+    console.error("Error in sendBatchMails:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
 module.exports = {
   addCertificateTemplate,
   getCertificate,
@@ -518,4 +645,6 @@ module.exports = {
   getEvent,
   getCertificateTest,
   dummyCertificate,
+  getEventByFormId,
+  sendBatchMails,
 };

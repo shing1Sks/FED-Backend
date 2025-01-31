@@ -55,9 +55,9 @@ const getOrganisationEvents = async (req, res) => {
 
 const createOrganisationEvent = async (req, res) => {
   try {
-    const { name, description, organisationId, attendees } = req.body;
+    const { name, description, organisationId, attendees, formId } = req.body;
     const event = await prisma.event.create({
-      data: { name, description, organisationId, attendees },
+      data: { name, description, organisationId, attendees, formId },
     });
     res.json(event);
   } catch (error) {

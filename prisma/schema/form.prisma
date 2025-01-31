@@ -1,9 +1,11 @@
 model form {
-  id            String @id @default(auto()) @map("_id") @db.ObjectId
-  info          Json
-  sections      Json[]
-  extra         Json?
+  id       String @id @default(auto()) @map("_id") @db.ObjectId
+  info     Json
+  sections Json[]
+  extra    Json?
 
   userReg       formRegistration[]
   formAnalytics registrationTracker[]
+
+  events Event[] // Reverse relation to Event
 }

@@ -3,6 +3,7 @@ model Event {
     name               String
     description        String
     organisationId     String
+    formId             String?              @db.ObjectId
     certificates       Certificate[]
     issuedCertificates issuedCertificates[]
     attendees          Json[]
@@ -10,4 +11,5 @@ model Event {
     updatedAt          DateTime             @updatedAt
 
     organisation Organisation @relation(fields: [organisationId], references: [id])
+    form         form?        @relation(fields: [formId], references: [id]) // Relation to form
 }
