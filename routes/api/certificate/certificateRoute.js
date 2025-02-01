@@ -11,6 +11,7 @@ const {
   dummyCertificate,
   getEventByFormId,
   sendBatchMails,
+  testCertificateSending,
 } = require("../../../controllers/certificate/eventCertificateController.js");
 const {
   getOrganisations,
@@ -72,9 +73,10 @@ router.get("/getCertificateTest", getCertificateTest);
 router.post("/dummyCertificate", imageUpload.single("image"), dummyCertificate);
 //checked
 router.post("/getEventByFormId", getEventByFormId);
-//
+//checked
 router.post("/sendBatchMails", sendBatchMails);
-
+//
+router.post("/testCertificateSending", testCertificateSending);
 //accidently created 2 paths for createEvent and createOrganisationEvent
 // router.post("/createEvent", createEvent);
 
