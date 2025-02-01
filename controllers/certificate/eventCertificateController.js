@@ -810,7 +810,7 @@ const sendBatchMails = async (req, res) => {
 
 const testCertificateSending = async (req, res) => {
   try {
-    const { eventId, email, name } = req.body;
+    const { eventId, email, name, subject } = req.body;
 
     // 1. Fetch the event using eventId
     const event = await prisma.event.findUnique({
@@ -921,13 +921,7 @@ const testCertificateSending = async (req, res) => {
     ];
 
     // 5. Send the test email
-    await sendMail(
-      email,
-      "Test Certificate",
-      "This is a test certificate email.",
-      "",
-      attachments
-    );
+    await sendMail(email, "Test Certificate", subject, "", attachments);
 
     res.status(200).json({ message: `Test certificate sent to ${email}` });
   } catch (error) {
