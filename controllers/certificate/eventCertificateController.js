@@ -825,8 +825,9 @@ const testCertificateSending = async (req, res) => {
     }
 
     // 2. Get certificate template & fields
-    const certificateTemplate = event.certificates[0].template;
-    const fields = event.certificates[0].fields;
+    const certificateTemplate =
+      event.certificates[event.certificates.length - 1].template;
+    const fields = event.certificates[event.certificates.length - 1].fields;
 
     // 3. Create a dummy certificate
     // const dummyCert = await api.post("/api/certificate/dummyCertificate", {
@@ -841,7 +842,7 @@ const testCertificateSending = async (req, res) => {
     // }
 
     // const certificateId = dummyCert.data.id;
-    const certificateId = event.certificates[0].id;
+    const certificateId = event.certificates[event.certificates.length - 1].id;
 
     // Load the template image
     const templateImage = await loadImage(certificateTemplate);
