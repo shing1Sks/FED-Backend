@@ -810,7 +810,7 @@ const sendBatchMails = async (req, res) => {
 
 const testCertificateSending = async (req, res) => {
   try {
-    const { eventId, email } = req.body;
+    const { eventId, email, name } = req.body;
 
     // 1. Fetch the event using eventId
     const event = await prisma.event.findUnique({
@@ -855,8 +855,15 @@ const testCertificateSending = async (req, res) => {
     let qrX, qrY;
 
     // 4. Populate dummy values in certificate fields
+    // const fieldValues = {
+    //   name: "Test User",
+    //   date: "01-01-2025",
+    //   course: "Test Course",
+    //   qr: "testQR",
+    // };
+
     const fieldValues = {
-      name: "Test User",
+      name,
       date: "01-01-2025",
       course: "Test Course",
       qr: "testQR",
