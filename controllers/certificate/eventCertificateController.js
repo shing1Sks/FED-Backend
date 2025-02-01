@@ -1,4 +1,4 @@
-const { PrismaClient,Prisma } = require("@prisma/client");
+const { PrismaClient, Prisma } = require("@prisma/client");
 const prisma = new PrismaClient();
 const uploadImage = require("../../utils/image/uploadImage");
 const fs = require("fs");
@@ -273,10 +273,9 @@ const generateCertificate = async (
     // Draw the template image on the canvas
     context.drawImage(templateImage, 0, 0, width, height);
 
-
-    let 
+    let field;
     // Iterate over the fields and populate text
-    for (const field of fields) {
+    for (field of fields) {
       const {
         fieldName,
         x,
@@ -320,7 +319,13 @@ const generateCertificate = async (
     // const qrY = height - 170;
 
     const qrCodeImage = await loadImage(qrCodeBuffer);
-    context.drawImage(qrCodeImage, qrX || width - 170, qrY || height - 170, 150, 150);
+    context.drawImage(
+      qrCodeImage,
+      qrX || width - 170,
+      qrY || height - 170,
+      150,
+      150
+    );
 
     // Generate the final image buffer
     const buffer = canvas.toBuffer("image/png");
@@ -458,15 +463,24 @@ const dummyCertificate = async (req, res) => {
     fieldValues[key.fieldName] = `Dummy ${key.fieldName}`;
   });
 
-  const image = req.file;
+  let image, templateImage;
 
-  if (!image) {
+  if (req.body.imageLink) {
+    templateImage = req.body.imageLink;
+  } else {
+    image = req.file;
+    templateImage = image.path;
+  }
+
+  console.log("templateImage", templateImage);
+
+  if (!templateImage) {
     return res.status(400).json({ error: "Template image is required." });
   }
 
   try {
     // Load the template image
-    const templateImage = await loadImage(image.path);
+    templateImage = await loadImage(templateImage);
     const { width, height } = templateImage;
 
     // Create a canvas
@@ -489,20 +503,19 @@ const dummyCertificate = async (req, res) => {
         fontSize = 40,
         fontColor = "#000000",
       } = field;
-      
+
       let value;
       if (fieldName === "qr") {
         qrX = x;
         qrY = y;
-      }
-      else{
+      } else {
         value = fieldValues[fieldName];
-      
-      if (!value) {
-        console.warn(`Missing value for field: ${fieldName}`);
-        continue;
+
+        if (!value) {
+          console.warn(`Missing value for field: ${fieldName}`);
+          continue;
+        }
       }
-    }
       context.font = `${fontSize}px ${font}`;
       context.fillStyle = fontColor;
       context.textAlign = "center";
@@ -565,7 +578,9 @@ const getEventByFormId = async (req, res) => {
     });
 
     if (!event) {
-      return res.status(201).json({ message: "No event found for the given formId" });
+      return res
+        .status(201)
+        .json({ message: "No event found for the given formId" });
     }
 
     return res.status(200).json(event);
@@ -609,11 +624,13 @@ const sendBatchMails = async (req, res) => {
 
         if (cert.imageSrc && cert.imageSrc.startsWith("data:image")) {
           const base64Data = cert.imageSrc.split(",")[1]; // Extract base64 data
+          const buffer = Buffer.from(base64Data, "base64"); // Convert to Buffer
+
           attachments = [
             {
-              filename: "certificate.png",
-              content: Buffer.from(base64Data, "base64"), // Convert to Buffer
-              encoding: "base64",
+              filename: `certificate-${cert.name}.png`, // Include name in filename
+              content: buffer, // Ensure content is a buffer
+              encoding: "base64", // Proper encoding
             },
           ];
         }
@@ -623,7 +640,7 @@ const sendBatchMails = async (req, res) => {
           cert.email,
           subject,
           htmlContent,
-          htmlContent.replace(/<[^>]+>/g, ""),
+          "Please find your certificate attached.",
           attachments
         );
 
