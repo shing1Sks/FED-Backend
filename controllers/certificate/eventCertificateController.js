@@ -1037,7 +1037,7 @@ const verifyCertificate = async (req, res) => {
   //   data: { imageSrc },
   // });
 
-  return res.json({ imageSrc });
+  return res.json({ imageSrc, certificate });
 };
 
 module.exports = {
