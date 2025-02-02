@@ -338,10 +338,10 @@ const generateCertificate = async (
     const base64Image = buffer.toString("base64");
     const imageSrc = `data:image/png;base64,${base64Image}`;
 
-    await prisma.issuedCertificates.update({
-      where: { id: issuedCertificate.id },
-      data: { imageSrc },
-    });
+    // await prisma.issuedCertificates.update({
+    //   where: { id: issuedCertificate.id },
+    //   data: { imageSrc },
+    // });
 
     return imageSrc;
   } catch (error) {
@@ -931,6 +931,115 @@ const testCertificateSending = async (req, res) => {
   }
 };
 
+const verifyCertificate = async (req, res) => {
+  const { id } = req.body;
+
+  // Get the certificate by ID
+  const certificate = await prisma.issuedCertificates.findUnique({
+    where: { id },
+  });
+  // console.log(certificate);
+
+  if (!certificate) {
+    return res.status(404).json({ error: "Certificate not found" });
+  }
+
+  const { fields, fieldValues, certificateId } = certificate;
+
+  // Get the certificate template by ID
+  const template = await prisma.certificate.findUnique({
+    where: { id: certificateId },
+  });
+
+  if (!template) {
+    return res.status(404).json({ error: "Certificate template not found" });
+  }
+
+  // Load the template image
+  const templateImage = await loadImage(template.template);
+  const { width, height } = templateImage;
+
+  // Create a canvas to draw the image
+  const canvas = createCanvas(width, height);
+  const context = canvas.getContext("2d");
+
+  // Draw the template image on the canvas
+  context.drawImage(templateImage, 0, 0, width, height);
+
+  let qrX, qrY;
+
+  // Iterate over the fields and populate text
+  for (let field of fields) {
+    const {
+      fieldName,
+      x,
+      y,
+      font = "Arial",
+      fontSize = 40,
+      fontColor = "#000000",
+    } = field;
+
+    const value = fieldValues[fieldName];
+
+    // Define position for QR code
+    if (fieldName === "qr") {
+      qrX = x;
+      qrY = y;
+    }
+
+    if (!value) {
+      console.warn(`Missing value for field: ${fieldName}`);
+      continue;
+    }
+
+    // Set text properties and draw the text on the image
+    context.font = `${fontSize}px ${font}`;
+    context.fillStyle = fontColor;
+    context.textAlign = "center";
+    context.fillText(value, (x / 100) * width, (y / 100) * height);
+  }
+
+  // Generate a QR code containing the certificate verification URL
+  const qrCodeData = `${
+    process.env.DOMAIN || "testDomain"
+  }/verify/certificate?id=${certificate.id}`;
+  const qrCodeBuffer = await QRCode.toBuffer(qrCodeData, {
+    width: 150,
+    margin: 1,
+  });
+
+  // Load the generated QR code image
+  const qrCodeImage = await loadImage(qrCodeBuffer);
+
+  // Draw the QR code on the canvas (bottom-right corner or position specified by the template)
+  context.drawImage(
+    qrCodeImage,
+    qrX || width - 170, // Default position if QR X is not provided
+    qrY || height - 170, // Default position if QR Y is not provided
+    150,
+    150
+  );
+
+  // Generate the final image buffer in PNG format
+  const buffer = canvas.toBuffer("image/png");
+
+  // Optionally save image locally (for testing)
+  // const outputPath = path.resolve(__dirname, `certificate-${Date.now()}.png`);
+  // fs.writeFileSync(outputPath, buffer);
+
+  // Convert the buffer to a Base64-encoded image source
+  const base64Image = buffer.toString("base64");
+  const imageSrc = `data:image/png;base64,${base64Image}`;
+
+  // Save the imageSrc to the database if necessary
+  // await prisma.issuedCertificates.update({
+  //   where: { id: certificate.id },
+  //   data: { imageSrc },
+  // });
+
+  return res.json({ imageSrc });
+};
+
 module.exports = {
   addCertificateTemplate,
   getCertificate,
@@ -942,4 +1051,5 @@ module.exports = {
   getEventByFormId,
   sendBatchMails,
   testCertificateSending,
+  verifyCertificate,
 };
