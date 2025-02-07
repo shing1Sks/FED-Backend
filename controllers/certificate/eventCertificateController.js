@@ -669,12 +669,16 @@ const getEventByFormId = async (req, res) => {
 // };
 const sendBatchMails = async (req, res) => {
   try {
-    const { batchSize, formId, subject, htmlContent } = req.body;
+    const { batchSize, eventId, subject, htmlContent } = req.body;
 
     // Fetch the event and issued certificates
-    const event = await prisma.event.findFirst({
-      where: { formId },
-      include: { issuedCertificates: true },
+    // const event = await prisma.event.findFirst({
+    //   where: { formId },
+    //   include: { issuedCertificates: true },
+    // });
+
+    const event = await prisma.event.findUnique({
+      where: { id: eventId },
     });
 
     if (!event) {
