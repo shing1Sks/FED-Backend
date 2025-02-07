@@ -67,7 +67,7 @@ router.post(
   addCertificateTemplate
 );
 //checked
-router.get("/getCertificate", getCertificate);
+router.post("/getCertificate", getCertificate);
 //checked this route only returns the data stored in certifcate schema !
 router.get("/getCertificateTest", getCertificateTest);
 //checked
