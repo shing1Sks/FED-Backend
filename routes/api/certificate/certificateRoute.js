@@ -13,6 +13,7 @@ const {
   sendBatchMails,
   testCertificateSending,
   verifyCertificate,
+  sendCertViaEmail,
 } = require("../../../controllers/certificate/eventCertificateController.js");
 const {
   getOrganisations,
@@ -82,5 +83,6 @@ router.post("/testCertificateSending", testCertificateSending);
 router.post("/verifyCertificate", verifyCertificate);
 //accidently created 2 paths for createEvent and createOrganisationEvent
 // router.post("/createEvent", createEvent);
+router.post("/sendCertViaEmail", sendCertViaEmail);
 
 module.exports = router;
