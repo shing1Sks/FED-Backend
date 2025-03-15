@@ -542,8 +542,8 @@ const generateCertificateImage = async (
   }
 
   const qrCodeData = `${
-    process.env.DOMAIN || "testDomain"
-  }/verify/certificate?id=${certificateId}`;
+    process.env.DOMAIN || "testDomain/"
+  }verify/certificate?id=${certificateId}`;
   const qrCodeBuffer = await QRCode.toBuffer(qrCodeData, {
     width: 150,
     margin: 1,
@@ -827,7 +827,7 @@ const dummyCertificate = async (req, res) => {
     }
 
     // Generate a QR code containing the certificate link
-    const qrCodeData = `${process.env.DOMAIN || "testDomain"}/test`;
+    const qrCodeData = `${process.env.DOMAIN || "testDomain/"}test`;
 
     const qrCodeBuffer = await QRCode.toBuffer(qrCodeData, {
       width: 150,
@@ -1054,8 +1054,8 @@ const sendBatchMails = async (req, res) => {
 
         // Generate a QR code containing the certificate link
         const qrCodeData = `${
-          process.env.DOMAIN || "testDomain"
-        }/verify/certificate?id=${cert.id}`;
+          process.env.DOMAIN || "testDomain/"
+        }verify/certificate?id=${cert.id}`;
         const qrCodeBuffer = await QRCode.toBuffer(qrCodeData, {
           width: 150,
           margin: 1,
@@ -1305,8 +1305,8 @@ const verifyCertificate = async (req, res) => {
 
   // Generate a QR code containing the certificate verification URL
   const qrCodeData = `${
-    process.env.DOMAIN || "testDomain"
-  }/verify/certificate?id=${certificate.id}`;
+    process.env.DOMAIN || "testDomain/"
+  }verify/certificate?id=${certificate.id}`;
   const qrCodeBuffer = await QRCode.toBuffer(qrCodeData, {
     width: 150,
     margin: 1,
@@ -1457,8 +1457,8 @@ const sendCertViaEmail = async (req, res) => {
         }
 
         const qrCodeData = `${
-          process.env.DOMAIN || "testDomain"
-        }/verify/certificate?id=${cert.id}`;
+          process.env.DOMAIN || "testDomain/"
+        }verify/certificate?id=${cert.id}`;
         const qrCodeBuffer = await QRCode.toBuffer(qrCodeData, {
           width: 150,
           margin: 1,
