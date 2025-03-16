@@ -103,156 +103,388 @@ const addCertificateTemplate = async (req, res) => {
   }
 };
 
+// const getCertificate = async (req, res) => {
+//   try {
+//     const { eventId, batchSize } = req.body;
+
+//     // Validate the event exists
+//     const event = await prisma.event.findUnique({
+//       where: { id: eventId },
+//     });
+
+//     if (!event) {
+//       return res.status(404).json({ error: "Event not found" });
+//     }
+
+//     // Fetch attendees in batches if batchSize is provided
+//     if (batchSize) {
+//       var attendees = await prisma.event.findUnique({
+//         where: { id: eventId },
+//       });
+
+//       attendees = attendees.attendees;
+
+//       if (!attendees.length) {
+//         return res.status(404).json({
+//           error: "No attendees found for the event",
+//         });
+//       }
+
+//       const generatedCertificates = [];
+
+//       let count = 0;
+
+//       // Generate certificates for each attendee
+//       for (const attendee of attendees) {
+//         if (count >= batchSize) {
+//           break;
+//         }
+//         const { fieldValues, certificateId } = attendee;
+
+//         // console.log(fieldValues, certificateId, attendee);
+//         try {
+//           if (certificateId) {
+//             const certificateImageSrc = await generateCertificate(
+//               certificateId,
+//               fieldValues,
+//               eventId,
+//               attendee
+//               // email,
+//               // false
+//             ); // Change `false` to `true` if you want to email certificates
+//             generatedCertificates.push({ attendee, certificateImageSrc });
+//           } else {
+//             generatedCertificates.push({
+//               attendee,
+//               error: "Certificate not found",
+//             });
+//           }
+//         } catch (error) {
+//           console.error(
+//             `Failed to generate certificate for attendee ID: ${attendee}`,
+//             error.message
+//           );
+//           generatedCertificates.push({ attendee, error: error.message });
+//         }
+//         count++;
+//       }
+
+//       // Return generated certificates or errors
+//       return res.status(200).json({
+//         message: "Certificates generated successfully for the batch",
+//         data: generatedCertificates,
+//       });
+//     }
+
+//     return res
+//       .status(400)
+//       .json({ error: "Batch size is required for batch processing" });
+//   } catch (error) {
+//     console.error("Error in getCertificate:", error.message);
+//     return res.status(500).json({ error: "An unexpected error occurred" });
+//   }
+// };
+
+// const generateCertificate = async (
+//   certificateId,
+//   fieldValues,
+//   eventId,
+//   attendee
+// ) => {
+//   try {
+//     // Fetch the certificate template
+//     const certificate = await prisma.certificate.findUnique({
+//       where: { id: certificateId },
+//     });
+
+//     if (!certificate || !certificate.template) {
+//       throw new Error("Certificate template or URL not found");
+//     }
+
+//     const { template, fields } = certificate;
+
+//     if (!fields || !Array.isArray(fields)) {
+//       throw new Error("Invalid or missing fields in certificate template");
+//     }
+
+//     //remove attendee from attendees array from event schema
+//     const event = await prisma.event.findUnique({
+//       where: { id: eventId },
+//     });
+
+//     if (!event) {
+//       throw new Error("Event not found");
+//     }
+
+//     // Remove the attendee with the specific `id` from the array
+//     const updatedAttendees = event.attendees.filter((attendeeVal) => {
+//       return (
+//         attendeeVal?.fieldValues?.email &&
+//         attendeeVal.fieldValues.email !== attendee?.fieldValues?.email
+//       );
+//     });
+
+//     // Update the `attendees` field in the database
+//     await prisma.event.update({
+//       where: { id: eventId },
+//       data: {
+//         attendees: updatedAttendees,
+//       },
+//     });
+
+//     if (!certificateId || !eventId || !fieldValues || !fieldValues.email) {
+//       throw new Error("Missing required data for creating issuedCertificate");
+//     }
+
+//     console.log("Certificate ID:", certificateId);
+//     console.log("Event ID:", eventId);
+//     console.log("Field Values:", fieldValues);
+//     console.log("Certificate Fields:", fields);
+
+//     //add the attendee to the issuedcertificates schema
+//     const issuedCertificate = await prisma.issuedCertificates.create({
+//       data: {
+//         certificateId,
+//         eventId,
+//         email: fieldValues.email || "unknown-email",
+//         fieldValues: fieldValues,
+//         fields,
+//       },
+//     });
+
+//     //push issued certificate to issuedCertificates issuedCertificates[] in event schema
+//     await prisma.event.update({
+//       where: { id: eventId },
+//       data: {
+//         issuedCertificates: {
+//           connect: { id: issuedCertificate.id },
+//         },
+//       },
+//     });
+
+//     // Load the template image
+//     const templateImage = await loadImage(template);
+//     const { width, height } = templateImage;
+
+//     // Create a canvas
+//     const canvas = createCanvas(width, height);
+//     const context = canvas.getContext("2d");
+
+//     // Draw the template image on the canvas
+//     context.drawImage(templateImage, 0, 0, width, height);
+
+//     let field;
+//     // Iterate over the fields and populate text
+//     for (field of fields) {
+//       const {
+//         fieldName,
+//         x,
+//         y,
+//         font = "Arial",
+//         fontSize = 40,
+//         fontColor = "#000000",
+//       } = field;
+
+//       const value = fieldValues[fieldName];
+
+//       if (fieldName === "qr") {
+//         qrX = x;
+//         qrY = y;
+//       }
+
+//       if (!value) {
+//         console.warn(`Missing value for field: ${fieldName}`);
+//         continue;
+//       }
+
+//       context.font = `${fontSize}px ${font}`;
+//       context.fillStyle = fontColor;
+//       context.textAlign = "center";
+//       // context.fillText(value, x, y);
+//       context.fillText(value, (x / 100) * width, (y / 100) * height);
+//     }
+
+//     // Generate a QR code containing the certificate link
+//     const qrCodeData = `${
+//       process.env.DOMAIN || "testDomain"
+//     }/verify/certificate?id=${issuedCertificate.id}`;
+
+//     const qrCodeBuffer = await QRCode.toBuffer(qrCodeData, {
+//       width: 150,
+//       margin: 1,
+//     });
+
+//     // // Draw the QR code on the canvas (bottom-right corner)
+//     // const qrX = width - 170; // Adjust placement based on canvas dimensions
+//     // const qrY = height - 170;
+
+//     const qrCodeImage = await loadImage(qrCodeBuffer);
+//     context.drawImage(
+//       qrCodeImage,
+//       qrX || width - 170,
+//       qrY || height - 170,
+//       150,
+//       150
+//     );
+
+//     // Generate the final image buffer
+//     const buffer = canvas.toBuffer("image/png");
+
+//     // //saving image locally only for testing should resolve this
+//     // const outputPath = path.resolve(__dirname, `certificate-${Date.now()}.png`);
+//     // fs.writeFileSync(outputPath, buffer);
+
+//     // Convert the buffer to a Base64-encoded image source
+//     const base64Image = buffer.toString("base64");
+//     const imageSrc = `data:image/png;base64,${base64Image}`;
+
+//     // await prisma.issuedCertificates.update({
+//     //   where: { id: issuedCertificate.id },
+//     //   data: { imageSrc },
+//     // });
+
+//     return imageSrc;
+//   } catch (error) {
+//     console.error("Error generating certificate:", error);
+//     throw error;
+//   }
+// };
+
 const getCertificate = async (req, res) => {
   try {
     const { eventId, batchSize } = req.body;
 
-    // Validate the event exists
+    if (!eventId || !batchSize) {
+      return res
+        .status(400)
+        .json({ error: "Event ID and batch size are required" });
+    }
+
+    // Fetch event with attendees and issued certificates
     const event = await prisma.event.findUnique({
       where: { id: eventId },
+      select: { attendees: true, issuedCertificates: true },
     });
 
     if (!event) {
       return res.status(404).json({ error: "Event not found" });
     }
 
-    // Fetch attendees in batches if batchSize is provided
-    if (batchSize) {
-      var attendees = await prisma.event.findUnique({
-        where: { id: eventId },
-      });
+    let attendees = event.attendees || [];
 
-      attendees = attendees.attendees;
-
-      if (!attendees.length) {
-        return res.status(404).json({
-          error: "No attendees found for the event",
-        });
-      }
-
-      const generatedCertificates = [];
-
-      let count = 0;
-
-      // Generate certificates for each attendee
-      for (const attendee of attendees) {
-        if (count >= batchSize) {
-          break;
-        }
-        const { fieldValues, certificateId } = attendee;
-
-        // console.log(fieldValues, certificateId, attendee);
-        try {
-          if (certificateId) {
-            const certificateImageSrc = await generateCertificate(
-              certificateId,
-              fieldValues,
-              eventId,
-              attendee
-              // email,
-              // false
-            ); // Change `false` to `true` if you want to email certificates
-            generatedCertificates.push({ attendee, certificateImageSrc });
-          } else {
-            generatedCertificates.push({
-              attendee,
-              error: "Certificate not found",
-            });
-          }
-        } catch (error) {
-          console.error(
-            `Failed to generate certificate for attendee ID: ${attendee}`,
-            error.message
-          );
-          generatedCertificates.push({ attendee, error: error.message });
-        }
-        count++;
-      }
-
-      // Return generated certificates or errors
-      return res.status(200).json({
-        message: "Certificates generated successfully for the batch",
-        data: generatedCertificates,
-      });
+    if (attendees.length === 0) {
+      return res
+        .status(201)
+        .json({ message: "No attendees found for this event" });
     }
 
-    return res
-      .status(400)
-      .json({ error: "Batch size is required for batch processing" });
+    // Limit attendees to batch size
+    attendees = attendees.slice(0, batchSize);
+
+    const generatedCertificates = [];
+
+    for (const attendee of attendees) {
+      try {
+        const { fieldValues, certificateId } = attendee;
+        const attendeeEmail = fieldValues?.email;
+
+        if (!certificateId) {
+          generatedCertificates.push({
+            attendee,
+            error: "No certificate ID found",
+          });
+          continue;
+        }
+
+        // Remove any previous issued certificates for this attendee (ensuring overwrite)
+        await prisma.issuedCertificates.deleteMany({
+          where: { eventId, email: attendeeEmail },
+        });
+
+        // Generate new certificate
+        const certificateImageSrc = await generateCertificate(
+          certificateId,
+          fieldValues,
+          eventId
+        );
+
+        generatedCertificates.push({ attendee, certificateImageSrc });
+      } catch (error) {
+        console.error(
+          `Failed to generate certificate for ${attendee.fieldValues?.email}:`,
+          error
+        );
+        generatedCertificates.push({ attendee, error: error.message });
+      }
+    }
+
+    return res.status(200).json({
+      message: "Certificates generated/updated successfully",
+      data: generatedCertificates,
+    });
   } catch (error) {
     console.error("Error in getCertificate:", error.message);
     return res.status(500).json({ error: "An unexpected error occurred" });
   }
 };
 
-const generateCertificate = async (
-  certificateId,
-  fieldValues,
-  eventId,
-  attendee
-) => {
+const generateCertificate = async (certificateId, fieldValues, eventId) => {
   try {
-    // Fetch the certificate template
+    if (!certificateId || !fieldValues?.email) {
+      throw new Error("Missing certificate ID or attendee email");
+    }
+
+    const attendeeEmail = fieldValues.email;
+
+    // Fetch certificate template
     const certificate = await prisma.certificate.findUnique({
       where: { id: certificateId },
     });
 
     if (!certificate || !certificate.template) {
-      throw new Error("Certificate template or URL not found");
+      throw new Error("Certificate template not found");
     }
 
     const { template, fields } = certificate;
 
-    if (!fields || !Array.isArray(fields)) {
-      throw new Error("Invalid or missing fields in certificate template");
-    }
-
-    //remove attendee from attendees array from event schema
-    const event = await prisma.event.findUnique({
-      where: { id: eventId },
-    });
-
-    if (!event) {
-      throw new Error("Event not found");
-    }
-
-    // Remove the attendee with the specific `id` from the array
-    const updatedAttendees = event.attendees.filter((attendeeVal) => {
-      return (
-        attendeeVal?.fieldValues?.email &&
-        attendeeVal.fieldValues.email !== attendee?.fieldValues?.email
-      );
-    });
-
-    // Update the `attendees` field in the database
-    await prisma.event.update({
-      where: { id: eventId },
-      data: {
-        attendees: updatedAttendees,
+    // Remove previous issued certificates for this attendee (avoid duplicates)
+    await prisma.issuedCertificates.deleteMany({
+      where: {
+        eventId,
+        email: attendeeEmail,
       },
     });
 
-    if (!certificateId || !eventId || !fieldValues || !fieldValues.email) {
-      throw new Error("Missing required data for creating issuedCertificate");
+    // Fetch event attendees and filter out the current attendee
+    const event = await prisma.event.findUnique({
+      where: { id: eventId },
+      select: { attendees: true },
+    });
+
+    if (event?.attendees) {
+      const updatedAttendees = event.attendees.filter(
+        (attendee) => attendee.fieldValues.email !== attendeeEmail
+      );
+
+      // Update event attendees list
+      await prisma.event.update({
+        where: { id: eventId },
+        data: { attendees: updatedAttendees },
+      });
     }
 
-    console.log("Certificate ID:", certificateId);
-    console.log("Event ID:", eventId);
-    console.log("Field Values:", fieldValues);
-    console.log("Certificate Fields:", fields);
-
-    //add the attendee to the issuedcertificates schema
+    // Add to issuedCertificates
     const issuedCertificate = await prisma.issuedCertificates.create({
       data: {
         certificateId,
         eventId,
-        email: fieldValues.email || "unknown-email",
-        fieldValues: fieldValues,
+        email: attendeeEmail,
+        fieldValues,
         fields,
       },
     });
 
-    //push issued certificate to issuedCertificates issuedCertificates[] in event schema
+    // Attach issued certificate to event
     await prisma.event.update({
       where: { id: eventId },
       data: {
@@ -262,92 +494,66 @@ const generateCertificate = async (
       },
     });
 
-    // Load the template image
-    const templateImage = await loadImage(template);
-    const { width, height } = templateImage;
-
-    // Create a canvas
-    const canvas = createCanvas(width, height);
-    const context = canvas.getContext("2d");
-
-    // Draw the template image on the canvas
-    context.drawImage(templateImage, 0, 0, width, height);
-
-    let field;
-    // Iterate over the fields and populate text
-    for (field of fields) {
-      const {
-        fieldName,
-        x,
-        y,
-        font = "Arial",
-        fontSize = 40,
-        fontColor = "#000000",
-      } = field;
-
-      const value = fieldValues[fieldName];
-
-      if (fieldName === "qr") {
-        qrX = x;
-        qrY = y;
-      }
-
-      if (!value) {
-        console.warn(`Missing value for field: ${fieldName}`);
-        continue;
-      }
-
-      context.font = `${fontSize}px ${font}`;
-      context.fillStyle = fontColor;
-      context.textAlign = "center";
-      // context.fillText(value, x, y);
-      context.fillText(value, (x / 100) * width, (y / 100) * height);
-    }
-
-    // Generate a QR code containing the certificate link
-    const qrCodeData = `${
-      process.env.DOMAIN || "testDomain"
-    }/verify/certificate?id=${issuedCertificate.id}`;
-
-    const qrCodeBuffer = await QRCode.toBuffer(qrCodeData, {
-      width: 150,
-      margin: 1,
-    });
-
-    // // Draw the QR code on the canvas (bottom-right corner)
-    // const qrX = width - 170; // Adjust placement based on canvas dimensions
-    // const qrY = height - 170;
-
-    const qrCodeImage = await loadImage(qrCodeBuffer);
-    context.drawImage(
-      qrCodeImage,
-      qrX || width - 170,
-      qrY || height - 170,
-      150,
-      150
+    // Generate certificate image
+    const imageSrc = await generateCertificateImage(
+      template,
+      fields,
+      fieldValues,
+      issuedCertificate.id
     );
-
-    // Generate the final image buffer
-    const buffer = canvas.toBuffer("image/png");
-
-    // //saving image locally only for testing should resolve this
-    // const outputPath = path.resolve(__dirname, `certificate-${Date.now()}.png`);
-    // fs.writeFileSync(outputPath, buffer);
-
-    // Convert the buffer to a Base64-encoded image source
-    const base64Image = buffer.toString("base64");
-    const imageSrc = `data:image/png;base64,${base64Image}`;
-
-    // await prisma.issuedCertificates.update({
-    //   where: { id: issuedCertificate.id },
-    //   data: { imageSrc },
-    // });
 
     return imageSrc;
   } catch (error) {
     console.error("Error generating certificate:", error);
-    throw error;
+    return null; // Don't stop execution, just return null if an error occurs
   }
+};
+
+const generateCertificateImage = async (
+  template,
+  fields,
+  fieldValues,
+  certificateId
+) => {
+  const templateImage = await loadImage(template);
+  const { width, height } = templateImage;
+  const canvas = createCanvas(width, height);
+  const context = canvas.getContext("2d");
+
+  context.drawImage(templateImage, 0, 0, width, height);
+
+  for (const field of fields) {
+    const {
+      fieldName,
+      x,
+      y,
+      font = "Arial",
+      fontSize = 40,
+      fontColor = "#000000",
+    } = field;
+    const value = fieldValues[fieldName];
+
+    if (!value) continue;
+
+    context.font = `${fontSize}px ${font}`;
+    context.fillStyle = fontColor;
+    context.textAlign = "center";
+    context.fillText(value, (x / 100) * width, (y / 100) * height);
+  }
+
+  const qrCodeData = `${
+    process.env.DOMAIN || "testDomain/"
+  }verify/certificate?id=${certificateId}`;
+  const qrCodeBuffer = await QRCode.toBuffer(qrCodeData, {
+    width: 150,
+    margin: 1,
+  });
+  const qrCodeImage = await loadImage(qrCodeBuffer);
+
+  context.drawImage(qrCodeImage, width - 170, height - 170, 150, 150);
+
+  const buffer = canvas.toBuffer("image/png");
+  return `data:image/png;base64,${buffer.toString("base64")}`;
 };
 
 const getVerifyCertficate = async (req, res) => {
@@ -367,35 +573,129 @@ const getVerifyCertficate = async (req, res) => {
   }
 };
 
+// const addAttendee = async (req, res) => {
+//   try {
+//     const { eventId, attendees } = req.body;
+
+//     if (Array.isArray(attendees) && attendees.length > 0) {
+//       // Only one update call to add all attendees
+//       await prisma.event.update({
+//         where: { id: eventId },
+//         data: {
+//           attendees: {
+//             push: attendees, // Push all attendees at once
+//           },
+//         },
+//       });
+//     } else {
+//       // Add a single attendee
+//       await prisma.event.update({
+//         where: { id: eventId },
+//         data: {
+//           attendees: {
+//             push: [attendees], // Ensure it's wrapped in an array
+//           },
+//         },
+//       });
+//     }
+//     res.status(200).json({ message: "Attendees added successfully" });
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ error: "Internal server error" });
+//   }
+// };
+
+// const addAttendee = async (req, res) => {
+//   try {
+//     const { eventId, attendees } = req.body;
+
+//     if (!eventId || !attendees || !Array.isArray(attendees)) {
+//       return res.status(400).json({ error: "Invalid request data" });
+//     }
+
+//     // Fetch the existing attendees for the event
+//     const event = await prisma.event.findUnique({
+//       where: { id: eventId },
+//       select: { attendees: true },
+//     });
+
+//     if (!event) {
+//       return res.status(404).json({ error: "Event not found" });
+//     }
+
+//     const existingAttendees = event.attendees || [];
+
+//     // Extract emails of existing attendees
+//     const existingEmails = new Set(
+//       existingAttendees.map((attendee) => attendee.fieldValues?.email)
+//     );
+
+//     // Filter out attendees with duplicate emails
+//     const newAttendees = attendees.filter(
+//       (attendee) => !existingEmails.has(attendee.fieldValues?.email)
+//     );
+
+//     if (newAttendees.length === 0) {
+//       return res.status(202).json({ message: "No new attendees to add" });
+//     }
+
+//     // Update event with new attendees
+//     await prisma.event.update({
+//       where: { id: eventId },
+//       data: {
+//         attendees: {
+//           push: newAttendees, // Add only non-duplicate attendees
+//         },
+//       },
+//     });
+
+//     res.status(200).json({ message: "Attendees added successfully" });
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ error: "Internal server error" });
+//   }
+// };
+
 const addAttendee = async (req, res) => {
   try {
     const { eventId, attendees } = req.body;
 
-    if (Array.isArray(attendees) && attendees.length > 0) {
-      // Only one update call to add all attendees
-      await prisma.event.update({
-        where: { id: eventId },
-        data: {
-          attendees: {
-            push: attendees, // Push all attendees at once
-          },
-        },
-      });
-    } else {
-      // Add a single attendee
-      await prisma.event.update({
-        where: { id: eventId },
-        data: {
-          attendees: {
-            push: [attendees], // Ensure it's wrapped in an array
-          },
-        },
-      });
+    if (!eventId || !attendees || attendees.length === 0) {
+      return res
+        .status(400)
+        .json({ error: "Event ID and attendees are required" });
     }
-    res.status(200).json({ message: "Attendees added successfully" });
+
+    const addedAttendees = [];
+
+    for (const attendee of attendees) {
+      const existingAttendee = await prisma.attendee.findFirst({
+        where: { eventId, email: attendee.email }, // Ensure we check by email and eventId
+      });
+
+      if (existingAttendee) {
+        // Update existing attendee instead of inserting a new one
+        const updatedAttendee = await prisma.attendee.update({
+          where: { id: existingAttendee.id },
+          data: { ...attendee, updatedAt: new Date() }, // Update necessary fields
+        });
+        addedAttendees.push(updatedAttendee);
+      } else {
+        // Insert new attendee if not found
+        const newAttendee = await prisma.attendee.create({
+          data: { ...attendee, eventId },
+        });
+        addedAttendees.push(newAttendee);
+      }
+    }
+
+    return res.status(200).json({
+      message: "Attendees added/updated successfully",
+      data: addedAttendees,
+    });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Internal server error" });
+    console.error("Error in addAttendee:", error);
+    return res.status(500).json({ error: "An unexpected error occurred" });
   }
 };
 
@@ -527,7 +827,7 @@ const dummyCertificate = async (req, res) => {
     }
 
     // Generate a QR code containing the certificate link
-    const qrCodeData = `${process.env.DOMAIN || "testDomain"}/test`;
+    const qrCodeData = `${process.env.DOMAIN || "testDomain/"}test`;
 
     const qrCodeBuffer = await QRCode.toBuffer(qrCodeData, {
       width: 150,
@@ -754,8 +1054,8 @@ const sendBatchMails = async (req, res) => {
 
         // Generate a QR code containing the certificate link
         const qrCodeData = `${
-          process.env.DOMAIN || "testDomain"
-        }/verify/certificate?id=${cert.id}`;
+          process.env.DOMAIN || "testDomain/"
+        }verify/certificate?id=${cert.id}`;
         const qrCodeBuffer = await QRCode.toBuffer(qrCodeData, {
           width: 150,
           margin: 1,
@@ -1005,8 +1305,8 @@ const verifyCertificate = async (req, res) => {
 
   // Generate a QR code containing the certificate verification URL
   const qrCodeData = `${
-    process.env.DOMAIN || "testDomain"
-  }/verify/certificate?id=${certificate.id}`;
+    process.env.DOMAIN || "testDomain/"
+  }verify/certificate?id=${certificate.id}`;
   const qrCodeBuffer = await QRCode.toBuffer(qrCodeData, {
     width: 150,
     margin: 1,
@@ -1044,6 +1344,173 @@ const verifyCertificate = async (req, res) => {
   return res.json({ imageSrc, certificate });
 };
 
+// const sendCertificates = async (req, res) => {
+//   const { attendees } = req.body;
+
+//   const certificate = await prisma.certificate.findUnique({
+//     where: { id: certificateId },
+//   });
+
+// }
+
+const sendCertViaEmail = async (req, res) => {
+  try {
+    const { eventId, attendees } = req.body;
+
+    if (!eventId || !attendees || attendees.length === 0) {
+      return res.status(400).json({ error: "Invalid request data" });
+    }
+
+    // Fetch existing issued certificates to prevent duplicates
+    const existingCertificates = await prisma.issuedCertificates.findMany({
+      where: {
+        eventId,
+        email: { in: attendees.map((attendee) => attendee.fieldValues.email) },
+      },
+    });
+
+    const existingEmails = new Set(
+      existingCertificates.map((cert) => cert.email)
+    );
+
+    const newCertificates = attendees.filter(
+      (attendee) => !existingEmails.has(attendee.fieldValues.email)
+    );
+
+    if (newCertificates.length === 0) {
+      return res
+        .status(200)
+        .json({ message: "All certificates already issued" });
+    }
+
+    let certificatesToMail = [];
+
+    for (const attendee of newCertificates) {
+      const { fieldValues, certificateId } = attendee;
+
+      // Save certificate in DB
+      const issuedCert = await prisma.issuedCertificates.create({
+        data: {
+          eventId,
+          email: fieldValues.email,
+          fieldValues,
+          certificateId,
+          mailed: false,
+        },
+      });
+
+      certificatesToMail.push(issuedCert);
+    }
+
+    // Proceed with sending certificates via email
+    for (const cert of certificatesToMail) {
+      try {
+        let attachments = [];
+
+        const certificate = await prisma.certificate.findUnique({
+          where: { id: cert.certificateId },
+        });
+
+        if (!certificate || !certificate.template) {
+          console.error(`Certificate template missing for ${cert.email}`);
+          continue;
+        }
+
+        const { template, fields } = certificate;
+        const fieldValues = cert.fieldValues;
+
+        const templateImage = await loadImage(template);
+        const { width, height } = templateImage;
+
+        const canvas = createCanvas(width, height);
+        const context = canvas.getContext("2d");
+        context.drawImage(templateImage, 0, 0, width, height);
+
+        let qrX, qrY;
+
+        for (const field of fields) {
+          const {
+            fieldName,
+            x,
+            y,
+            font = "Arial",
+            fontSize = 40,
+            fontColor = "#000000",
+          } = field;
+          const value = fieldValues[fieldName];
+
+          if (fieldName === "qr") {
+            qrX = x;
+            qrY = y;
+            continue;
+          }
+
+          if (!value) {
+            console.warn(`Missing value for ${fieldName}`);
+            continue;
+          }
+
+          context.font = `${fontSize}px ${font}`;
+          context.fillStyle = fontColor;
+          context.textAlign = "center";
+          context.fillText(value, (x / 100) * width, (y / 100) * height);
+        }
+
+        const qrCodeData = `${
+          process.env.DOMAIN || "testDomain/"
+        }verify/certificate?id=${cert.id}`;
+        const qrCodeBuffer = await QRCode.toBuffer(qrCodeData, {
+          width: 150,
+          margin: 1,
+        });
+
+        const qrCodeImage = await loadImage(qrCodeBuffer);
+        context.drawImage(
+          qrCodeImage,
+          qrX || width - 170,
+          qrY || height - 170,
+          150,
+          150
+        );
+
+        const buffer = canvas.toBuffer("image/png");
+
+        attachments = [
+          {
+            filename: `certificate-${cert.email}.png`,
+            content: Buffer.from(buffer), // Fixing the Nodemailer ESTREAM error
+            encoding: "base64",
+          },
+        ];
+
+        await sendMail(
+          cert.email,
+          "Your Certificate",
+          "Please find your certificate attached.",
+          "Thank you for participating.",
+          attachments
+        );
+
+        await prisma.issuedCertificates.update({
+          where: { id: cert.id },
+          data: { mailed: true },
+        });
+
+        console.log(`Mail sent to ${cert.email}`);
+      } catch (error) {
+        console.error(`Failed to send mail to ${cert.email}:`, error);
+      }
+    }
+
+    res.status(200).json({
+      message: `${certificatesToMail.length} emails sent successfully`,
+    });
+  } catch (error) {
+    console.error("Error in sendCertViaEmail:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
 module.exports = {
   addCertificateTemplate,
   getCertificate,
@@ -1056,4 +1523,5 @@ module.exports = {
   sendBatchMails,
   testCertificateSending,
   verifyCertificate,
+  sendCertViaEmail,
 };
