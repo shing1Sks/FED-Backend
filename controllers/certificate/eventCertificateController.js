@@ -1248,12 +1248,14 @@ const verifyCertificate = async (req, res) => {
     return res.status(404).json({ error: "Certificate not found" });
   }
 
-  const { fields, fieldValues, certificateId } = certificate;
+  const { fieldValues, certificateId } = certificate;
 
   // Get the certificate template by ID
   const template = await prisma.certificate.findUnique({
     where: { id: certificateId },
   });
+
+  const fields = template.fields;
 
   if (!template) {
     return res.status(404).json({ error: "Certificate template not found" });
@@ -1328,8 +1330,8 @@ const verifyCertificate = async (req, res) => {
   const buffer = canvas.toBuffer("image/png");
 
   // Optionally save image locally (for testing)
-  // const outputPath = path.resolve(__dirname, `certificate-${Date.now()}.png`);
-  // fs.writeFileSync(outputPath, buffer);
+  const outputPath = path.resolve(__dirname, `certificate-${Date.now()}.png`);
+  fs.writeFileSync(outputPath, buffer);
 
   // Convert the buffer to a Base64-encoded image source
   const base64Image = buffer.toString("base64");
