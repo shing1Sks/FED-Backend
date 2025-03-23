@@ -1255,6 +1255,10 @@ const verifyCertificate = async (req, res) => {
     where: { id: certificateId },
   });
 
+  const event = await prisma.event.findUnique({
+    where: { id: certificate.eventId },
+  });
+
   const fields = template.fields;
 
   if (!template) {
@@ -1330,8 +1334,8 @@ const verifyCertificate = async (req, res) => {
   const buffer = canvas.toBuffer("image/png");
 
   // Optionally save image locally (for testing)
-  const outputPath = path.resolve(__dirname, `certificate-${Date.now()}.png`);
-  fs.writeFileSync(outputPath, buffer);
+  // const outputPath = path.resolve(__dirname, `certificate-${Date.now()}.png`);
+  // fs.writeFileSync(outputPath, buffer);
 
   // Convert the buffer to a Base64-encoded image source
   const base64Image = buffer.toString("base64");
@@ -1343,7 +1347,7 @@ const verifyCertificate = async (req, res) => {
   //   data: { imageSrc },
   // });
 
-  return res.json({ imageSrc, certificate });
+  return res.json({ imageSrc, certificate, event });
 };
 
 // const sendCertificates = async (req, res) => {
@@ -1357,7 +1361,7 @@ const verifyCertificate = async (req, res) => {
 
 const sendCertViaEmail = async (req, res) => {
   try {
-    const { eventId, attendees } = req.body;
+    const { eventId, attendees, subject, body } = req.body;
 
     if (!eventId || !attendees || attendees.length === 0) {
       return res.status(400).json({ error: "Invalid request data" });
@@ -1487,8 +1491,8 @@ const sendCertViaEmail = async (req, res) => {
 
         await sendMail(
           cert.email,
-          "Your Certificate",
-          "Please find your certificate attached.",
+          subject || "Your Certificate",
+          body || "Please find your certificate attached.",
           "Thank you for participating.",
           attachments
         );
