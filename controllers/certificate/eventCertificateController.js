@@ -1517,6 +1517,39 @@ const sendCertViaEmail = async (req, res) => {
   }
 };
 
+const sendCertificatesAndEvents = async (req, res) => {
+  const email = req.body.email;
+
+  try {
+    const issuedCertificates = await prisma.issuedCertificates.findMany({
+      where: { email },
+    });
+
+    // Map and use Promise.all to wait for all async operations to complete
+    const certandevent = await Promise.all(
+      issuedCertificates.map(async (cert) => {
+        try {
+          const event = await prisma.event.findUnique({
+            where: { id: cert.eventId },
+          });
+          return { cert, event };
+        } catch (error) {
+          console.error("Error fetching event:", error);
+          return null; // Return null or some fallback to maintain array length
+        }
+      })
+    );
+
+    // Filter out any null values (if any error occurred)
+    const filteredCertandevent = certandevent.filter((item) => item !== null);
+
+    res.status(200).json({ certandevent: filteredCertandevent });
+  } catch (error) {
+    console.error("Error in sendCertificatesAndEvents:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
 module.exports = {
   addCertificateTemplate,
   getCertificate,
@@ -1530,4 +1563,5 @@ module.exports = {
   testCertificateSending,
   verifyCertificate,
   sendCertViaEmail,
+  sendCertificatesAndEvents,
 };
