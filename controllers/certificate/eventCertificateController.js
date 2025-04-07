@@ -1359,7 +1359,7 @@ const verifyCertificate = async (req, res) => {
 
 // }
 
-const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+// const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const sendCertViaEmail = async (req, res) => {
   try {
@@ -1507,7 +1507,7 @@ const sendCertViaEmail = async (req, res) => {
         console.log(`Mail sent to ${cert.email}`);
 
         // Add a delay of 1 minute - timer
-        await sleep(60000);
+        // await sleep(60000);
       } catch (error) {
         console.error(`Failed to send mail to ${cert.email}:`, error);
       }
