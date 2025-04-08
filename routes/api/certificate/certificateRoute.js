@@ -23,6 +23,7 @@ const {
   getOrganisationEvents,
   createOrganisationEvent,
 } = require("../../../controllers/certificate/organisationController.js");
+const { verifyToken } = require("../../../middleware/verifyToken.js");
 
 // const {
 //   saveCertificate,
@@ -46,22 +47,31 @@ const {
 // Organisation Routes
 
 //checked
-router.get("/getOrganisations", getOrganisations);
+// router.get("/getOrganisations", getOrganisations);
+// //checked
+// router.get("/getOrganisation", getOrganisationById);
+// //checked
+// router.post("/createOrganisation", createOrganisation);
+// //checked
+// router.get("/getOrganisationEvents", getOrganisationEvents);
+// //checked
+// router.post("/createOrganisationEvent", createOrganisationEvent);
+
+// PUBLIC ROUTES
+
 //checked
-router.get("/getOrganisation", getOrganisationById);
-//checked
-router.post("/createOrganisation", createOrganisation);
-//checked
-router.get("/getOrganisationEvents", getOrganisationEvents);
-//checked
-router.post("/createOrganisationEvent", createOrganisationEvent);
+router.post("/verifyCertificate", verifyCertificate);
+
+// Event Routes
+
+router.use(verifyToken);
+
+// PRIVATE ROUTES
+
 //checked
 router.post("/addAttendee", addAttendee);
 //checked
 router.get("/getEvent", getEvent);
-
-// Event Routes
-
 //checked
 router.post(
   "/addCertificateTemplate",
@@ -80,12 +90,10 @@ router.post("/getEventByFormId", getEventByFormId);
 router.post("/sendBatchMails", sendBatchMails);
 //checked
 router.post("/testCertificateSending", testCertificateSending);
-//checked
-router.post("/verifyCertificate", verifyCertificate);
 //accidently created 2 paths for createEvent and createOrganisationEvent
-// router.post("/createEvent", createEvent);
+//router.post("/createEvent", createEvent);
 router.post("/sendCertViaEmail", sendCertViaEmail);
-//
+//checked
 router.post("/sendCertificatesAndEvents", sendCertificatesAndEvents);
 
 module.exports = router;
