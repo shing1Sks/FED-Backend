@@ -66,8 +66,8 @@ const addRegistration = expressAsyncHandler(async (req, res, next) => {
         }
 
         await validateCurrentForm(form, req.user, sections);
-        console.log('form validation passed');
 
+        console.log('form validation passed');
         const { info } = form;
         const { relatedEvent } = info;
         let teamName = [req.user.email.toUpperCase()];
@@ -117,10 +117,10 @@ const addRegistration = expressAsyncHandler(async (req, res, next) => {
 
         if (info.participationType !== "Individual") {
 
-            console.log("related", relatedEventForm.info.eventTitle)
+            console.log("related", relatedEventForm?.info?.eventTitle)
             console.log("eventTitle", info.eventTitle)
             console.log("count", form.formAnalytics[0]?.regUserEmails.length);
-            teamCode = await generateTeamCode(relatedEventForm.info.eventTitle, info.eventTitle, form.formAnalytics[0]?.regUserEmails.length);
+            teamCode = await generateTeamCode(relatedEventForm?.info?.eventTitle, info.eventTitle, form.formAnalytics[0]?.regUserEmails.length);
 
 
             createTeamSection = sections.find(section => section.name === "Create Team");
@@ -175,6 +175,9 @@ const addRegistration = expressAsyncHandler(async (req, res, next) => {
 
                     teamCode = teamCodeField.value;
                     regTeamMemEmails = [...teamExists.regTeamMemEmails, req.user.email];
+                }
+                else {
+                    return next(new ApiError(400, "Team Code field is required for Join Team"));
                 }
 
 
