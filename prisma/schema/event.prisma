@@ -1,0 +1,15 @@
+model Event {
+    id                 String               @id @default(auto()) @map("_id") @db.ObjectId
+    name               String
+    description        String
+    organisationId     String
+    formId             String?              @db.ObjectId
+    certificates       Certificate[]
+    issuedCertificates issuedCertificates[]
+    attendees          Json[]
+    createdAt          DateTime             @default(now())
+    updatedAt          DateTime             @updatedAt
+
+    organisation Organisation @relation(fields: [organisationId], references: [id])
+    form         form?        @relation(fields: [formId], references: [id]) // Relation to form
+}
