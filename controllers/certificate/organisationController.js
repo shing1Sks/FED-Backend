@@ -56,6 +56,8 @@ const getOrganisationEvents = async (req, res) => {
 const createOrganisationEvent = async (req, res) => {
   try {
     const { name, description, organisationId, attendees, formId } = req.body;
+    // console.log(Object.keys(prisma));
+
     const event = await prisma.event.create({
       data: { name, description, organisationId, attendees, formId },
     });
