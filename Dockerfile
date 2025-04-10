@@ -1,26 +1,40 @@
-# Use the official Node.js image as a parent image
-FROM node:latest
+# Use a specific Node.js version for better compatibility
+FROM node:20-slim
 
-# Set the working directory in the container
+# Install system dependencies required for node-canvas and other native modules
+RUN apt-get update && apt-get install -y \
+    libcairo2-dev \
+    libpango1.0-dev \
+    libjpeg-dev \
+    libgif-dev \
+    librsvg2-dev \
+    build-essential \
+    python3 \
+    pkg-config \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set working directory
 WORKDIR /app
 
 # Pass environment variables for Prisma
 ARG DATABASE_URL
 ENV DATABASE_URL=${DATABASE_URL}
 
-# Copy package.json and package-lock.json (if available)
+# Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm install --production
+# Install only production dependencies
+RUN npm install --omit=dev
 
-# Copy the rest of the application code
+# Copy rest of the code
 COPY . .
 
-# Expose the port specified in your environment variable
-EXPOSE 5000
-
-# Use the environment variable for the port in your command
+# Make sure the build script is executable
 RUN chmod +x ./build.sh
 
+# Expose the required port
+EXPOSE 5000
+
+# Run the start script
 CMD ["./build.sh"]
