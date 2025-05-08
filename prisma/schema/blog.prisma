@@ -1,0 +1,14 @@
+model blog {
+  id               String             @id @default(auto()) @map("_id") @db.ObjectId
+  image            String  
+  category         String?          
+  title            String           
+  author           Json
+  blogLink         String
+  desc             String
+  date             String
+  visibility       String
+  approval         Json?
+  summary          String?
+  @@map("blog")
+}

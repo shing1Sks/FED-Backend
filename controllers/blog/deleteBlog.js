@@ -1,0 +1,1 @@
+// write code to delete a blog post

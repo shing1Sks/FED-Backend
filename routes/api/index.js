@@ -17,4 +17,6 @@ router.use('/form', require('./forms/formRoutes'));
 
 router.use('/certificate', require('./certificate/certificateRoute'));
 
+router.use('/blog', require('./blog'));
+
 module.exports = router; // Ensure you are exporting the router
