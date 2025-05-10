@@ -11,7 +11,7 @@ const deleteBlog = async (req, res, next) => {
 
         // Check if the blog exists
         const blog = await prisma.blog.findUnique({
-            where: { id: Number(id) },
+            where: { id },
         });
 
         if (!blog) {
@@ -19,14 +19,14 @@ const deleteBlog = async (req, res, next) => {
         }
 
         // Delete the image associated with the blog
-          await deleteImage(blog.image, "BLOG");
+        await deleteImage(blog.image, "BLOG");
 
         // Delete the blog
         await prisma.blog.delete({
-            where: { id: Number(id) },
+            where: { id }, 
         });
 
-        res.status(status.OK).json({ message: "Blog deleted successfully" });
+        res.status(200).json({ message: "Blog deleted successfully" });
     } catch (error) {
         console.error("Error deleting blog:", error);
         next(new ApiError(status.INTERNAL_SERVER_ERROR, "An error occurred while deleting the blog"));
