@@ -7,7 +7,7 @@ const prisma = new PrismaClient();
 const getBlog = async (req, res, next) => {
   var blogs = null;
 
-  const { id } = req?.params || null;
+  const { id } = req?.query || null;
   console.log("ID:", id);
   try {
     // Check if the blog ID is provided

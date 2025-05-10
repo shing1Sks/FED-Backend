@@ -54,27 +54,27 @@ const getBlogByVisibility = async (req, res, next) => {
   }
 };
 
-// const getBlogByCategory = async (req, res, next) => {
-//   try {
-//     const { category } = req.params;
-//     const blogs = await prisma.blog.findMany({
-//       where: { category },
-//     });
+const getBlogByCategory = async (req, res, next) => {
+  try {
+    const { category } = req.params;
+    const blogs = await prisma.blog.findMany({
+      where: { category },
+    });
 
-//     if (!blogs.length) {
-//       return next(
-//         new ApiError(status.NOT_FOUND, "No blogs found in this category")
-//       );
-//     }
+    if (!blogs.length) {
+      return next(
+        new ApiError(status.NOT_FOUND, "No blogs found in this category")
+      );
+    }
 
-//     res
-//       .status(status.OK)
-//       .json({ message: "Blogs fetched successfully", blogs });
-//   } catch (error) {
-//     console.error("Error fetching blog by category:", error);
-//     next(new ApiError(status.INTERNAL_SERVER_ERROR, "Error fetching blog"));
-//   }
-// };
+    res
+      .status(status.OK)
+      .json({ message: "Blogs fetched successfully", blogs });
+  } catch (error) {
+    console.error("Error fetching blog by category:", error);
+    next(new ApiError(status.INTERNAL_SERVER_ERROR, "Error fetching blog"));
+  }
+};
 
 const getBlogByDepartment = async (req, res, next) => {
   try {
@@ -113,6 +113,6 @@ const getBlogByDepartment = async (req, res, next) => {
 module.exports = {
   getBlogByAuthor,
   getBlogByVisibility,
-  //   getBlogByCategory,
+  getBlogByCategory,
   getBlogByDepartment,
 };

@@ -11,20 +11,21 @@ const {
   getBlogByAuthor,
   getBlogByVisibility,
   getBlogByDepartment,
+  getBlogByCategory,
 } = require("../../../controllers/blog/getBlog");
 const { updateBlog } = require("../../../controllers/blog/updateBlog");
 // Define the blog routes here
 
 // rudrika
 router.get("/getBlog", getBlog);
-router.get("/getBlog/:id", getBlog);
+// router.get("/getBlog/:id", getBlog);
 router.delete("/deleteBlog/:id", deleteBlog);
 router.put("/updateBlog/:id", updateBlog);
 
 // shreyash
 router.get("/getBlogByAuthor/:author", getBlogByAuthor);
 router.get("/getBlogByVisibility/:visibility", getBlogByVisibility);
-// router.get('/getBlogByCategory/:category', getBlogByCategory);
+router.get("/getBlogByCategory/:category", getBlogByCategory);
 router.get("/getBlogByDepartment/:department", getBlogByDepartment);
 // router.get('/getBlogByApproval/:approval', getBlogByApproval);
 
